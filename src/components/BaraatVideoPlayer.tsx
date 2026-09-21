@@ -1,0 +1,398 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Upload, RefreshCw, Sparkles, Film, Check, ExternalLink } from 'lucide-react';
+import { getMedia, saveMedia, removeMedia } from '../utils/indexedDbHelper';
+import { Language } from '../types';
+import { extractYoutubeId, buildYoutubeEmbedUrl } from '../utils/videoPresets';
+
+interface BaraatVideoPlayerProps {
+  language: Language;
+  defaultVideoUrl?: string;
+  onVideoChange?: (url: string) => void;
+}
+
+const DEFAULT_BARAAT_VIDEO = 'https://www.youtube.com/watch?v=4Zj85g7rTy8';
+
+export const BaraatVideoPlayer: React.FC<BaraatVideoPlayerProps> = ({
+  language,
+  defaultVideoUrl,
+  onVideoChange
+}) => {
+  const [videoSrc, setVideoSrc] = useState<string | null>(defaultVideoUrl || DEFAULT_BARAAT_VIDEO);
+  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
+  const [hasCustomVideo, setHasCustomVideo] = useState<boolean>(Boolean(defaultVideoUrl && defaultVideoUrl !== DEFAULT_BARAAT_VIDEO));
+  const [videoFileName, setVideoFileName] = useState<string>('');
+  const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
+  const [inputUrl, setInputUrl] = useState<string>('');
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [activeSceneIdx, setActiveSceneIdx] = useState<number>(0);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync if prop changes
+  useEffect(() => {
+    if (defaultVideoUrl) {
+      setVideoSrc(defaultVideoUrl);
+    }
+  }, [defaultVideoUrl]);
+
+  const youtubeId = videoSrc ? extractYoutubeId(videoSrc) : null;
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    (async () => {
+      try {
+        const storedBlob = await getMedia('baraat_ceremony_video');
+        if (storedBlob) {
+          objectUrl = URL.createObjectURL(storedBlob);
+          setVideoSrc(objectUrl);
+          setHasCustomVideo(true);
+          setVideoFileName('Baraat_Ceremony_Video.mp4');
+        }
+      } catch (err) {
+        console.warn('Could not load cached baraat video:', err);
+      }
+    })();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, []);
+
+  const handleFile = async (file: File) => {
+    if (!file.type.startsWith('video/')) {
+      alert(
+        language === 'ur'
+          ? 'براہ کرم ویڈیو فائل منتخب کریں (MP4, WebM, etc)'
+          : language === 'hi'
+          ? 'कृपया कोई वीडियो फ़ाइल चुनें (MP4, WebM, आदि)'
+          : 'Please select a valid video file (MP4, WebM, etc)'
+      );
+      return;
+    }
+
+    try {
+      const url = URL.createObjectURL(file);
+      setVideoSrc(url);
+      setHasCustomVideo(true);
+      setVideoFileName(file.name);
+      setIsPlaying(true);
+      if (onVideoChange) onVideoChange(url);
+
+      await saveMedia('baraat_ceremony_video', file);
+    } catch (err) {
+      console.error('Error saving baraat video:', err);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleUrlSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputUrl.trim()) return;
+    setVideoSrc(inputUrl.trim());
+    setHasCustomVideo(true);
+    setVideoFileName('Online Stream');
+    setShowUrlInput(false);
+    setIsPlaying(true);
+    if (onVideoChange) onVideoChange(inputUrl.trim());
+  };
+
+  const handleReset = async () => {
+    try {
+      await removeMedia('baraat_ceremony_video');
+      setVideoSrc(defaultVideoUrl || DEFAULT_BARAAT_VIDEO);
+      setHasCustomVideo(false);
+      setVideoFileName('');
+      setInputUrl('');
+      if (onVideoChange) onVideoChange(DEFAULT_BARAAT_VIDEO);
+    } catch (err) {
+      console.error('Failed to reset baraat video:', err);
+    }
+  };
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      containerRef.current.requestFullscreen().catch(() => {});
+    }
+  };
+
+  const scenes = [
+    {
+      titleEn: 'Royal Baraat Departure & Procession',
+      titleUr: 'شاہانہ بارات کی روانگی و جلوس',
+      titleHi: 'दूल्हे की शाही बारात रवानगी',
+      taglineEn: 'The groom embarks in regal splendor with family',
+      taglineUr: 'شاہی انداز میں دلہا اور باراتیوں کی روانگی',
+      taglineHi: 'शानदार अंदाज में दूल्हे और परिवार की रवानगी',
+      icon: '🐎'
+    },
+    {
+      titleEn: 'Resonating Dhol & Shehnai Melodies',
+      titleUr: 'شہنائی کی گونج اور ڈھول پر رقص',
+      titleHi: 'शहनाई की मधुर धुन व ढोल-नगाड़े',
+      taglineEn: 'Joyous beats announcing the blessed arrival',
+      taglineUr: 'خوشیوں کے ترانے اور باراتیوں کا جوش',
+      taglineHi: 'उत्साह और खुशी से झूमते बाराती',
+      icon: '🎺'
+    },
+    {
+      titleEn: 'Grand Welcome at Burj Al Arab',
+      titleUr: 'برج العرب گرینڈ گیٹ پر والہانہ استقبال',
+      titleHi: 'बुर्ज अल अरब पर भव्य शाही इस्तकबाल',
+      taglineEn: 'Rose water sprinkling and flower showers for the groom',
+      taglineUr: 'عرقِ گلاب اور پھولوں کی نچھاور کے ساتھ پرتپاک خیر مقدم',
+      taglineHi: 'गुलाब जल और फूलों की वर्षा से दूल्हे का स्वागत',
+      icon: '👑'
+    }
+  ];
+
+  return (
+    <div className="w-full max-w-md mx-auto my-3 select-none">
+      {/* Top Header Toolbar */}
+      <div className="flex items-center justify-between gap-2 mb-2 px-1">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-pulse" />
+          <span className={`text-xs font-bold uppercase tracking-wider text-rose-950 ${language === 'hi' ? 'font-hindi' : 'font-display'}`}>
+            {language === 'ur' ? 'بارات ویڈیو پلئیر' : language === 'hi' ? 'बारात वीडियो' : 'Baraat Video Player'}
+          </span>
+          {hasCustomVideo && (
+            <span className="text-[10px] bg-rose-100 text-rose-800 font-semibold px-2 py-0.5 rounded-full border border-rose-300 flex items-center gap-1">
+              <Check className="w-3 h-3 text-rose-600" />
+              {language === 'hi' ? 'सेव्ड' : 'Saved'}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-gradient-to-r from-rose-700 to-amber-700 hover:from-rose-800 hover:to-amber-800 text-white text-[11px] font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
+            title="Upload MP4 from your device"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>
+              {language === 'ur'
+                ? 'ویڈیو لگائیں'
+                : language === 'hi'
+                ? 'वीडियो अपलोड करें'
+                : 'Upload Video'}
+            </span>
+          </button>
+
+          {hasCustomVideo && (
+            <button
+              type="button"
+              onClick={handleReset}
+              title="Reset video"
+              className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowUrlInput(!showUrlInput)}
+            className="text-[11px] text-rose-900 hover:text-rose-950 font-semibold underline px-1 cursor-pointer"
+          >
+            {showUrlInput ? (language === 'hi' ? 'बंद करें' : 'Close') : 'URL'}
+          </button>
+        </div>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="video/mp4,video/webm,video/ogg,video/quicktime"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
+      {showUrlInput && (
+        <form onSubmit={handleUrlSubmit} className="mb-3 p-2 bg-rose-50 rounded-2xl border border-rose-300 flex gap-2">
+          <input
+            type="url"
+            placeholder="https://... (MP4 or YouTube URL)"
+            value={inputUrl}
+            onChange={(e) => setInputUrl(e.target.value)}
+            className="flex-1 px-3 py-1.5 text-xs rounded-xl border border-gray-300 bg-white focus:outline-none focus:border-rose-500 font-mono"
+          />
+          <button
+            type="submit"
+            className="px-3 py-1.5 rounded-xl bg-rose-700 text-white text-xs font-bold hover:bg-rose-800 cursor-pointer"
+          >
+            {language === 'hi' ? 'लागू करें' : 'Apply'}
+          </button>
+        </form>
+      )}
+
+      {/* Main Grand Baraat Video Stage */}
+      <div
+        ref={containerRef}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        className={`relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_8px_25px_rgba(190,18,60,0.15)] border transition-all ${
+          isDragging
+            ? 'border-rose-500 ring-4 ring-rose-300/70 scale-[1.01]'
+            : 'border-white/50'
+        } bg-white/5 group select-none`}
+        style={{
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 228, 230, 0.05) 45%, rgba(244, 63, 94, 0.08) 100%)',
+          boxShadow: '0 8px 24px 0 rgba(190, 18, 60, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(190, 18, 60, 0.15)'
+        }}
+      >
+        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/25 via-white/5 to-transparent pointer-events-none z-1" />
+
+        {videoSrc && !youtubeId ? (
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            playsInline
+            loop
+            autoPlay
+            muted={isMuted}
+            className="w-full h-full object-cover object-center relative z-0"
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+          />
+        ) : videoSrc && youtubeId ? (
+          <iframe
+            key={youtubeId}
+            src={buildYoutubeEmbedUrl(youtubeId)}
+            title="Baraat Ceremony Video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            className="w-full h-full border-0 pointer-events-auto relative z-0"
+          />
+        ) : (
+          /* Visual Fallback Presentation of Baraat Procession */
+          <div className="absolute inset-0 w-full h-full overflow-hidden bg-transparent flex flex-col items-center justify-center p-4 sm:p-6 text-center z-0">
+            <div className="absolute inset-0 pointer-events-none opacity-30">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-rose-500/30 blur-2xl animate-pulse" />
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-rose-700 via-amber-600 to-yellow-400 text-white flex items-center justify-center shadow-[0_4px_16px_rgba(190,18,60,0.35)] mb-2 border border-white/60 animate-floatSlow">
+                <span className="text-2xl sm:text-3xl">🎺</span>
+              </div>
+
+              <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider text-rose-950 bg-rose-100/90 border border-rose-300/80 px-2.5 py-0.5 rounded-full mb-1.5 shadow-xs ${language === 'hi' ? 'font-hindi' : ''}`}>
+                {language === 'ur' ? 'روانگی و آمدِ بارات' : language === 'hi' ? 'बारात रवानगी व शाही स्वागत' : 'Royal Baraat Procession'}
+              </span>
+
+              <h4 className={`text-base sm:text-lg font-extrabold text-rose-950 mb-0.5 leading-tight ${language === 'hi' ? 'font-hindi' : 'font-display'}`}>
+                {language === 'ur'
+                  ? scenes[activeSceneIdx].titleUr
+                  : language === 'hi'
+                  ? scenes[activeSceneIdx].titleHi
+                  : scenes[activeSceneIdx].titleEn}
+              </h4>
+
+              <p className={`text-[11px] sm:text-xs text-rose-950/90 font-medium max-w-xs ${language === 'hi' ? 'font-hindi' : ''}`}>
+                {language === 'ur'
+                  ? scenes[activeSceneIdx].taglineUr
+                  : language === 'hi'
+                  ? scenes[activeSceneIdx].taglineHi
+                  : scenes[activeSceneIdx].taglineEn}
+              </p>
+
+              {/* Scene Indicator Dots */}
+              <div className="flex gap-1.5 mt-2.5">
+                {scenes.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveSceneIdx(i)}
+                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                      activeSceneIdx === i
+                        ? 'bg-rose-700 w-5 shadow-xs'
+                        : 'bg-rose-300/70 hover:bg-rose-400'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Video Overlay Play / Pause & Volume Controls */}
+        {videoSrc && !youtubeId && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 z-10 pointer-events-none">
+            <div className="flex justify-end pointer-events-auto">
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="p-2 rounded-full bg-black/50 text-white hover:bg-black/75 transition-colors cursor-pointer"
+              >
+                <Maximize className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between pointer-events-auto">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={togglePlay}
+                  className="p-2 rounded-full bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow-md cursor-pointer"
+                >
+                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  className="p-2 rounded-full bg-black/50 text-white hover:bg-black/75 transition-colors cursor-pointer"
+                >
+                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {videoFileName && (
+                <span className="text-[11px] text-white/90 font-mono truncate max-w-[150px] bg-black/40 px-2 py-0.5 rounded-md">
+                  {videoFileName}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

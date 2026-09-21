@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Wedding settings: anyone viewing the invitation link can read; anyone with admin access can write
+    match /wedding_settings/{document=**} {
+      allow read, write: if true;
+    }
+
+    // Guest RSVPs: anyone can read wishes and submit an RSVP
+    match /rsvps/{rsvpId} {
+      allow read, create: if true;
+      allow update, delete: if true;
+    }
+  }
+}

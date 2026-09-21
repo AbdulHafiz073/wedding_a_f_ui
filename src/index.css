@@ -1,0 +1,279 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-script {
+    font-family: 'Great Vibes', 'Alex Brush', cursive;
+  }
+  .font-display {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+  .font-body {
+    font-family: 'Lato', system-ui, -apple-system, sans-serif;
+  }
+  .font-urdu {
+    font-family: 'Noto Nastaliq Urdu', 'Amiri', serif;
+  }
+  .font-hindi {
+    font-family: 'Mukta', 'Tiro Devanagari Hindi', 'Rozha One', system-ui, sans-serif;
+  }
+  .font-arabic {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .perspective-1200 {
+    perspective: 1200px;
+  }
+}
+
+/* Custom animations & keyframes */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  10%, 30% { transform: scale(1.15); }
+  20%, 40% { transform: scale(1); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 2.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@keyframes tapPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.7; }
+}
+
+.animate-tapPulse {
+  animation: tapPulse 2s infinite ease-in-out;
+}
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+.animate-float {
+  animation: floatGentle 5s ease-in-out infinite;
+}
+
+/* 3D door swing angles */
+.door-open-left {
+  transform: rotateY(-118deg);
+}
+
+.door-open-right {
+  transform: rotateY(118deg);
+}
+
+@keyframes swaySlight {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.animate-sway {
+  animation: swaySlight 4s ease-in-out infinite alternate;
+}
+
+@keyframes petalDrift {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  85% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(105vh) translateX(40px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-petal {
+  animation: petalDrift 8s linear infinite;
+}
+
+@keyframes haldiPuff {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.15) translate(15px, -10px);
+    opacity: 0.7;
+  }
+}
+
+.animate-haldi-puff {
+  animation: haldiPuff 6s ease-in-out infinite alternate;
+}
+
+@keyframes haldiSplashBurst {
+  0% {
+    transform: scale(0.6) rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.05) rotate(10deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.4;
+  }
+}
+
+.animate-haldi-splash {
+  animation: haldiSplashBurst 8s ease-in-out infinite alternate;
+}
+
+@keyframes floatUpAndFade {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-260px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+.animate-floatUpAndFade {
+  animation: floatUpAndFade 4s ease-out forwards;
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-floatSlow {
+  animation: floatSlow 3s ease-in-out infinite;
+}
+
+@keyframes fadeInScene {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeInScene 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Diwali Lights & Festive Garland Keyframes */
+@keyframes diwaliTwinkle {
+  0%, 100% {
+    opacity: 0.95;
+    filter: drop-shadow(0 0 7px currentColor) brightness(1.15);
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.45;
+    filter: drop-shadow(0 0 2px currentColor) brightness(0.75);
+    transform: scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    filter: drop-shadow(0 0 12px currentColor) brightness(1.35);
+    transform: scale(1.08);
+  }
+  80% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 4px currentColor) brightness(0.9);
+    transform: scale(0.98);
+  }
+}
+
+.animate-diwali-twinkle-1 {
+  animation: diwaliTwinkle 2.4s ease-in-out infinite;
+}
+.animate-diwali-twinkle-2 {
+  animation: diwaliTwinkle 3.1s ease-in-out infinite 0.7s;
+}
+.animate-diwali-twinkle-3 {
+  animation: diwaliTwinkle 2.8s ease-in-out infinite 1.3s;
+}
+.animate-diwali-twinkle-4 {
+  animation: diwaliTwinkle 3.5s ease-in-out infinite 2s;
+}
+
+@keyframes flowerBreathe {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.04) rotate(1deg);
+  }
+}
+
+.animate-flower-breathe {
+  animation: flowerBreathe 4s ease-in-out infinite;
+}
+
+@keyframes toranSwaySoft {
+  0%, 100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+.animate-toran-sway {
+  animation: toranSwaySoft 5s ease-in-out infinite alternate;
+  transform-origin: top center;
+}
+
+/* Hanging Rope Swaying Animations for Groom & Bride Frames */
+@keyframes frameRopeSwayLeft {
+  0% {
+    transform: rotate(-3.5deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+  100% {
+    transform: rotate(-3.5deg);
+  }
+}
+
+@keyframes frameRopeSwayRight {
+  0% {
+    transform: rotate(3.2deg);
+  }
+  50% {
+    transform: rotate(-3.4deg);
+  }
+  100% {
+    transform: rotate(3.2deg);
+  }
+}
+
+.animate-rope-sway-left {
+  animation: frameRopeSwayLeft 5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: top center;
+}
+
+.animate-rope-sway-right {
+  animation: frameRopeSwayRight 5.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite 0.8s;
+  transform-origin: top center;
+}
+

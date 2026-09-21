@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "WeddingSettings": {
+      "collection": "wedding_settings",
+      "description": "Global wedding invitation configuration updated by owner and loaded by all visitors",
+      "fields": {
+        "groomNameEn": { "type": "string", "description": "Groom name in English" },
+        "groomNameUr": { "type": "string", "description": "Groom name in Urdu" },
+        "brideNameEn": { "type": "string", "description": "Bride name in English" },
+        "brideNameUr": { "type": "string", "description": "Bride name in Urdu" },
+        "weddingDate": { "type": "string", "description": "Wedding date string" },
+        "weddingTime": { "type": "string", "description": "Wedding time string" },
+        "venueName": { "type": "string", "description": "Venue name" },
+        "venueAddress": { "type": "string", "description": "Venue address" },
+        "venueMapUrl": { "type": "string", "description": "Google Maps link" },
+        "couplePhotoUrl": { "type": "string", "description": "Couple portrait photo URL" },
+        "jannatVideoUrl": { "type": "string", "description": "Jannat door video URL" },
+        "haldiVideoUrl": { "type": "string", "description": "Haldi ceremony video URL" },
+        "mehndiVideoUrl": { "type": "string", "description": "Mehndi ceremony video URL" },
+        "baraatVideoUrl": { "type": "string", "description": "Baraat ceremony video URL" },
+        "nikahVideoUrl": { "type": "string", "description": "Nikah ceremony video URL" },
+        "rukhsatiVideoUrl": { "type": "string", "description": "Rukhsati ceremony video URL" },
+        "groomFamily": { "type": "object", "description": "Groom family details" },
+        "brideFamily": { "type": "object", "description": "Bride family details" },
+        "timelineEvents": { "type": "array", "description": "Wedding timeline events" },
+        "updatedAt": { "type": "string", "description": "Timestamp of last edit" }
+      }
+    },
+    "Rsvp": {
+      "collection": "rsvps",
+      "description": "Guest RSVP submissions and wedding congratulations",
+      "fields": {
+        "name": { "type": "string", "description": "Guest name" },
+        "attending": { "type": "boolean", "description": "Whether guest is attending" },
+        "guestsCount": { "type": "number", "description": "Count of attendees" },
+        "message": { "type": "string", "description": "Wedding blessing/message" },
+        "phone": { "type": "string", "description": "Optional contact number" },
+        "createdAt": { "type": "string", "description": "Submission time" }
+      }
+    }
+  }
+}
