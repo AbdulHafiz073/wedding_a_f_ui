@@ -277,3 +277,12 @@
   transform-origin: top center;
 }
 
+/* Hide scrollbar for mobile slider tabs while preserving smooth touch swipe */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

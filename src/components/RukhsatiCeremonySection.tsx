@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Calendar, Clock, MapPin, Sparkles, Moon, Stars, Volume2, VolumeX, RotateCcw, Images } from 'lucide-react';
+import { Calendar, Clock, MapPin, Sparkles, Moon, Stars, Volume2, VolumeX, RotateCcw, Images, ExternalLink } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Language } from '../types';
 import { RukhsatiVideoPlayer } from './RukhsatiVideoPlayer';
@@ -14,6 +14,16 @@ interface RukhsatiCeremonySectionProps {
   locationEn?: string;
   locationUr?: string;
   locationHi?: string;
+  addressEn?: string;
+  addressUr?: string;
+  addressHi?: string;
+  dateEn?: string;
+  dateUr?: string;
+  dateHi?: string;
+  timeEn?: string;
+  timeUr?: string;
+  timeHi?: string;
+  mapUrl?: string;
 }
 
 interface Rocket {
@@ -55,7 +65,17 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
   onVideoChange,
   locationEn,
   locationUr,
-  locationHi
+  locationHi,
+  addressEn,
+  addressUr,
+  addressHi,
+  dateEn,
+  dateUr,
+  dateHi,
+  timeEn,
+  timeUr,
+  timeHi,
+  mapUrl
 }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -71,8 +91,8 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
   const [photosCount, setPhotosCount] = useState<number>(() => getCeremonyPhotos('rukhsati').length);
 
   // Sound generator for realistic firework thump & crackle using Web Audio API
-  const playFireworkSound = useCallback((pitch = 1) => {
-    if (isMuted) return;
+  const playFireworkSound = useCallback((pitch = 1, force = false) => {
+    if (isMuted && !force) return;
     try {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!audioCtxRef.current) {
@@ -560,8 +580,8 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
       className="relative w-full min-h-screen py-20 px-4 flex flex-col items-center justify-center overflow-hidden cursor-default select-none transition-colors duration-1000"
       style={{
         background: sceneRevealed
-          ? 'radial-gradient(ellipse at 50% 25%, #ffffff 0%, #fdf4ff 35%, #f3e8ff 70%, #e9d5ff 100%)'
-          : 'radial-gradient(ellipse at 50% 30%, #ffffff 0%, #fdf2f8 35%, #fce7f3 70%, #fbcfe8 100%)'
+          ? 'radial-gradient(ellipse at 50% 25%, #faf5ff 0%, #f3e8ff 25%, #e9d5ff 58%, #d8b4fe 85%, #c084fc 100%)'
+          : 'radial-gradient(ellipse at 50% 25%, #fdf2f8 0%, #fce7f3 25%, #fbcfe8 58%, #f472b6 85%, #ec4899 100%)'
       }}
     >
       {/* 1. MASTER BACKGROUND CANVAS (Mist + Pearls + Falling Petals + Grand Background Fireworks) */}
@@ -658,7 +678,13 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
         {/* Firecracker Sound Toggle */}
         <button
           type="button"
-          onClick={() => setIsMuted(!isMuted)}
+          onClick={() => {
+            const nextMuted = !isMuted;
+            setIsMuted(nextMuted);
+            if (!nextMuted) {
+              playFireworkSound(1, true);
+            }
+          }}
           className={`p-1.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md border ${
             isMuted
               ? 'bg-black/30 text-white/70 hover:bg-black/40 border-white/20'
@@ -684,18 +710,18 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
 
       {/* 5. Main Emotional Rukhsati Card with Video & Details */}
       <div
-        className={`relative z-10 max-w-lg w-full mx-auto rounded-3xl p-4 sm:p-6 shadow-[0_12px_36px_rgba(219,39,119,0.08)] border text-center transition-all duration-700 ${
+        className={`relative z-10 max-w-lg w-full mx-auto rounded-3xl p-4 sm:p-6 text-center transition-all duration-700 ${
           sceneRevealed
-            ? 'bg-white/60 backdrop-blur-md border-purple-200/80 text-gray-900'
-            : 'bg-white/40 backdrop-blur-md border-white/80 text-pink-950'
+            ? 'bg-purple-50/90 backdrop-blur-md border-2 border-purple-300/80 shadow-[0_16px_40px_rgba(168,85,247,0.18)] text-purple-950'
+            : 'bg-pink-50/90 backdrop-blur-md border-2 border-pink-300/80 shadow-[0_16px_40px_rgba(219,39,119,0.18)] text-pink-950'
         }`}
       >
         {/* Top Header Row with Ceremony Badge on Left and Gallery Icon Button on Right */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
             sceneRevealed
-              ? 'bg-purple-600/15 border-purple-400/40 text-purple-950'
-              : 'bg-pink-600/15 border-pink-400/30 text-pink-950'
+              ? 'bg-purple-600/20 border-purple-400/50 text-purple-950'
+              : 'bg-pink-600/20 border-pink-400/50 text-pink-950'
           }`}>
             <span>🕊️</span>
             <span>{language === 'ur' ? 'پروقار رخصتی' : language === 'hi' ? 'भावुक रुखसती' : 'Rukhsati Ritual'}</span>
@@ -704,14 +730,20 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
           <button
             type="button"
             onClick={() => setIsGalleryOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md border border-purple-300/70 bg-white/90 hover:bg-white text-purple-950"
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md border bg-white/95 hover:bg-white ${
+              sceneRevealed
+                ? 'border-purple-300 text-purple-950'
+                : 'border-pink-300 text-pink-950'
+            }`}
             title={language === 'ur' ? 'رخصتی تصویری گیلری' : language === 'hi' ? 'रुखसती फोटो गैलरी' : 'Rukhsati Ceremony Photos'}
           >
-            <Images className="w-3.5 h-3.5 text-purple-600" />
+            <Images className={`w-3.5 h-3.5 ${sceneRevealed ? 'text-purple-600' : 'text-pink-600'}`} />
             <span className={language === 'hi' ? 'font-hindi' : ''}>
               {language === 'ur' ? 'گیلری' : language === 'hi' ? 'गैलरी' : 'Gallery'}
             </span>
-            <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-950 text-[10px] font-extrabold">
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+              sceneRevealed ? 'bg-purple-100 text-purple-950' : 'bg-pink-100 text-pink-950'
+            }`}>
               {photosCount}
             </span>
           </button>
@@ -791,42 +823,44 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
         <div className="max-w-md mx-auto mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
           {/* 1. Date & Time */}
           <div
-            className={`p-2.5 rounded-2xl border shadow-xs flex items-center gap-2.5 ${
+            className={`p-2.5 rounded-2xl border shadow-2xs flex items-center gap-2.5 ${
               sceneRevealed
-                ? 'bg-white/10 backdrop-blur-md border-white/20 text-white'
-                : 'bg-white/25 backdrop-blur-[2px] border-white/60 text-pink-950'
+                ? 'bg-white/80 backdrop-blur-xs border-purple-200/90 text-purple-950'
+                : 'bg-white/75 backdrop-blur-xs border-pink-200/90 text-pink-950'
             }`}
           >
-            <div className="w-9 h-9 rounded-xl bg-pink-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <div className={`w-9 h-9 rounded-xl text-white flex items-center justify-center shrink-0 shadow-sm ${
+              sceneRevealed ? 'bg-purple-700' : 'bg-pink-600'
+            }`}>
               <Calendar className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <span
                 className={`text-[10px] font-bold uppercase tracking-wider block ${
-                  sceneRevealed ? 'text-amber-300' : 'text-pink-950'
+                  sceneRevealed ? 'text-purple-900' : 'text-pink-900'
                 } ${language === 'hi' ? 'font-hindi' : ''}`}
               >
                 {language === 'ur' ? 'تاریخ و وقت' : language === 'hi' ? 'तारीख व समय' : 'Date & Time'}
               </span>
               <p className="text-xs sm:text-sm font-extrabold mt-0.5 truncate">
                 {language === 'ur'
-                  ? '۲۸ اکتوبر ۲۰۲۶'
+                  ? (dateUr || '۲۸ اکتوبر ۲۰۲۶')
                   : language === 'hi'
-                  ? '28 अक्टूबर 2026'
-                  : 'Oct 28, 2026'}
+                  ? (dateHi || '28 अक्टूबर 2026')
+                  : (dateEn || 'Oct 28, 2026')}
               </p>
               <div
                 className={`flex items-center gap-1 text-[11px] font-bold mt-0.5 ${
-                  sceneRevealed ? 'text-pink-200' : 'text-pink-950'
+                  sceneRevealed ? 'text-purple-800' : 'text-pink-800'
                 }`}
               >
-                <Clock className="w-3 h-3 text-pink-500 shrink-0" />
+                <Clock className={`w-3 h-3 shrink-0 ${sceneRevealed ? 'text-purple-600' : 'text-pink-600'}`} />
                 <span>
                   {language === 'ur'
-                    ? 'رات ۹:۰۰ بجے'
+                    ? (timeUr || 'رات ۹:۰۰ بجے')
                     : language === 'hi'
-                    ? 'रात 9:00 बजे'
-                    : '9:00 PM'}
+                    ? (timeHi || 'रात 9:00 बजे')
+                    : (timeEn || '9:00 PM')}
                 </span>
               </div>
             </div>
@@ -834,37 +868,61 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
 
           {/* 2. Location (لوکیشن / स्थान) */}
           <div
-            className={`p-2.5 rounded-2xl border shadow-xs flex items-center gap-2.5 ${
+            className={`p-2.5 rounded-2xl border shadow-2xs flex items-start gap-2.5 ${
               sceneRevealed
-                ? 'bg-white/10 backdrop-blur-md border-white/20 text-white'
-                : 'bg-white/25 backdrop-blur-[2px] border-white/60 text-pink-950'
+                ? 'bg-white/80 backdrop-blur-xs border-purple-200/90 text-purple-950'
+                : 'bg-white/75 backdrop-blur-xs border-pink-200/90 text-pink-950'
             }`}
           >
-            <div className="w-9 h-9 rounded-xl bg-pink-700 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <div className={`w-9 h-9 rounded-xl text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5 ${
+              sceneRevealed ? 'bg-purple-800' : 'bg-pink-700'
+            }`}>
               <MapPin className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
               <span
                 className={`text-[10px] font-bold uppercase tracking-wider block ${
-                  sceneRevealed ? 'text-amber-300' : 'text-pink-950'
+                  sceneRevealed ? 'text-purple-900' : 'text-pink-900'
                 } ${language === 'hi' ? 'font-hindi' : ''}`}
               >
                 {language === 'ur' ? 'مقام (Location)' : language === 'hi' ? 'स्थान (Location)' : 'Location'}
               </span>
               <p className={`text-xs sm:text-sm font-extrabold mt-0.5 leading-tight ${language === 'hi' ? 'font-hindi' : ''}`}>
                 {language === 'ur'
-                  ? (locationUr || 'برج العرب پورٹیکو، دبئی')
+                  ? (locationUr || 'برج العرب پورٹیکو اینڈ لابی لاؤنج')
                   : language === 'hi'
-                  ? (locationHi || 'बुर्ज अल अरब पोर्टिको, दुबई')
-                  : (locationEn || 'Burj Al Arab Portico, Dubai')}
+                  ? (locationHi || 'बुर्ज अल अरब पोर्टिको एंड लॉबी लाउंज')
+                  : (locationEn || 'Burj Al Arab Portico & Lobby Lounge')}
               </p>
-              <span
-                className={`inline-block text-[10px] font-semibold mt-0.5 ${
-                  sceneRevealed ? 'text-pink-200' : 'text-pink-800'
+              <p
+                className={`text-[10px] font-medium mt-0.5 leading-snug ${
+                  sceneRevealed ? 'text-purple-900/80' : 'text-pink-950/80'
                 }`}
               >
-                📍 {language === 'ur' ? 'دبئی، متحدہ عرب امارات' : language === 'hi' ? 'दुबई, यूएई' : 'Dubai, UAE'}
-              </span>
+                {language === 'ur'
+                  ? (addressUr || 'پرنسپل رائل کنکورس، دبئی، متحدہ عرب امارات')
+                  : language === 'hi'
+                  ? (addressHi || 'प्रिंसिपल रॉयल कॉन्कोर्स, दुबई, यूएई')
+                  : (addressEn || 'Principal Royal Concourse, Dubai, UAE')}
+              </p>
+              {mapUrl && (
+                <a
+                  href={mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full transition-all active:scale-95 shadow-2xs ${
+                    sceneRevealed
+                      ? 'bg-purple-200/90 text-purple-950 hover:bg-purple-300'
+                      : 'bg-pink-200/90 text-pink-950 hover:bg-pink-300'
+                  }`}
+                >
+                  <MapPin className="w-2.5 h-2.5" />
+                  <span>
+                    {language === 'ur' ? 'گوگل میپ پر دیکھیں' : language === 'hi' ? 'गूगल मैप पर देखें' : 'View on Map'}
+                  </span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                </a>
+              )}
             </div>
           </div>
         </div>

@@ -114,6 +114,7 @@ export const defaultWeddingData: WeddingData = {
     parentsIntroEn: 'Son of Late Janab Mohammad Rafiq & Begum Nasreen Rafiq',
     parentsIntroUr: 'فرزندِ ارجمند: مرحوم جناب محمد رفیق و محترمہ نسرین رفیق',
     parentsIntroHi: 'सुपुत्र: स्वर्गीय जनाब मोहम्मद रफ़ीक़ व बेगम नसरीन रफ़ीक़',
+    badgeImageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=200&auto=format&fit=crop&q=80',
     members: [
       {
         id: 'g-father',
@@ -122,7 +123,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'स्वर्गीय जनाब मोहम्मद रफ़ीक़',
         relationEn: 'Father (In loving memory)',
         relationUr: 'والدِ محترم (یادِ رفتگاں)',
-        relationHi: 'पिताजी (स्मृति शेष)'
+        relationHi: 'पिताजी (स्मृति शेष)',
+        imageUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80'
       },
       {
         id: 'g-mother',
@@ -131,7 +133,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'बेगम नसरीन रफ़ीक़',
         relationEn: 'Mother',
         relationUr: 'والدۂ محترمہ',
-        relationHi: 'माताजी'
+        relationHi: 'माताजी',
+        imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80'
       },
       {
         id: 'g-brother-1',
@@ -140,7 +143,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'बिलाल क़ादिर व हमज़ा क़ादिर',
         relationEn: 'Brothers',
         relationUr: 'برادران',
-        relationHi: 'भाई'
+        relationHi: 'भाई',
+        imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'
       },
       {
         id: 'g-sister-1',
@@ -149,7 +153,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'आयशा क़ादिर व ज़ैनब क़ादिर',
         relationEn: 'Sisters',
         relationUr: 'ہمشیرگان',
-        relationHi: 'बहनें'
+        relationHi: 'बहनें',
+        imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
       },
       {
         id: 'g-elders',
@@ -158,7 +163,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'जनाब तारिक़ रफ़ीक़ व समस्त परिवारजन',
         relationEn: 'Uncles & Family',
         relationUr: 'چچا و جملہ بزرگواران',
-        relationHi: 'चाचा व पारिवारिक सदस्य'
+        relationHi: 'चाचा व पारिवारिक सदस्य',
+        imageUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
       }
     ]
   },
@@ -169,6 +175,7 @@ export const defaultWeddingData: WeddingData = {
     parentsIntroEn: 'Daughter of Janab Tariq Mehmood Khan & Begum Farzana Khan',
     parentsIntroUr: 'دخترِ نیک اختر: جناب طارق محمود خان و محترمہ فرزانہ خان',
     parentsIntroHi: 'सुपुत्री: जनाब तारिक़ महमूद ख़ान व बेगम फ़रज़ाना ख़ान',
+    badgeImageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     members: [
       {
         id: 'b-father',
@@ -177,7 +184,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'जनाब तारिक़ महमूद ख़ान',
         relationEn: 'Father',
         relationUr: 'والدِ محترم',
-        relationHi: 'पिताजी'
+        relationHi: 'पिताजी',
+        imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
       },
       {
         id: 'b-mother',
@@ -186,7 +194,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'बेगम फ़रज़ाना ख़ान',
         relationEn: 'Mother',
         relationUr: 'والدۂ محترمہ',
-        relationHi: 'माताजी'
+        relationHi: 'माताजी',
+        imageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
       },
       {
         id: 'b-brother-1',
@@ -195,7 +204,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'फ़रहान ख़ान व दानिश ख़ान',
         relationEn: 'Brothers',
         relationUr: 'برادران',
-        relationHi: 'भाई'
+        relationHi: 'भाई',
+        imageUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
       },
       {
         id: 'b-sister-1',
@@ -204,7 +214,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'सना ख़ान व मरियम ख़ान',
         relationEn: 'Sisters',
         relationUr: 'ہمشیرگان',
-        relationHi: 'बहनें'
+        relationHi: 'बहनें',
+        imageUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80'
       },
       {
         id: 'b-elders',
@@ -213,7 +224,8 @@ export const defaultWeddingData: WeddingData = {
         nameHi: 'जनाब साजिद ख़ान व समस्त स्नेहीजन',
         relationEn: 'Uncles & Family',
         relationUr: 'ماموں، چچا و اعزہ و اقارب',
-        relationHi: 'मामा, चाचा व पारिवारिक सदस्य'
+        relationHi: 'मामा, चाचा व पारिवारिक सदस्य',
+        imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
       }
     ]
   },
@@ -286,21 +298,78 @@ export const defaultWeddingData: WeddingData = {
   baraatVideoUrl: 'https://www.youtube.com/watch?v=4Zj85g7rTy8',
   nikahVideoUrl: 'https://www.youtube.com/watch?v=MINL6ki1lWU',
   rukhsatiVideoUrl: 'https://www.youtube.com/watch?v=Xxh-lsUBifk',
-  haldiLocationEn: 'Family Courtyard, Dubai',
-  haldiLocationUr: 'فیملی کورٹ یارڈ، دبئی',
-  haldiLocationHi: 'फ़ैमिली कोर्टयार्ड, दुबई',
-  mehndiLocationEn: 'The Palm Garden, Dubai',
-  mehndiLocationUr: 'دی پام گارڈن، دبئی',
-  mehndiLocationHi: 'द पाम गार्डन, दुबई',
-  baraatLocationEn: 'Burj Al Arab Grand Entrance, Dubai',
-  baraatLocationUr: 'برج العرب گرینڈ گیٹ، دبئی',
-  baraatLocationHi: 'बुर्ज अल अरब ग्रैंड गेट, दुबई',
-  nikahLocationEn: 'Burj Al Arab Grand Ballroom, Dubai',
-  nikahLocationUr: 'برج العرب گرینڈ بال روم، دبئی',
-  nikahLocationHi: 'बुर्ज अल अरब ग्रैंड बॉलरूम, दुबई',
-  rukhsatiLocationEn: 'Burj Al Arab Portico, Dubai',
-  rukhsatiLocationUr: 'برج العرب پورٹیکو، دبئی',
-  rukhsatiLocationHi: 'बुर्ज अल अरब पोर्टिको, दुबई',
+  haldiLocationEn: 'Royal Blossom Gardens (Haldi Lawn)',
+  haldiLocationUr: 'شاہی بلاسم گارڈنز (ہلدی لان)',
+  haldiLocationHi: 'रॉयल ब्लॉसम गार्डन्स (हल्दी लॉन)',
+  haldiAddressEn: 'Al Awir Road, Dubai, UAE',
+  haldiAddressUr: 'العویر روڈ، دبئی، متحدہ عرب امارات',
+  haldiAddressHi: 'अल अवीर रोड, दुबई, यूएई',
+  haldiDateEn: 'Oct 26, 2026',
+  haldiDateUr: '۲۶ اکتوبر ۲۰۲۶',
+  haldiDateHi: '26 अक्टूबर 2026',
+  haldiTimeEn: '6:30 PM',
+  haldiTimeUr: 'شام ۶:۳۰ بجے',
+  haldiTimeHi: 'शाम 6:30 बजे',
+  haldiMapUrl: 'https://maps.google.com/?q=Al+Awir+Dubai',
+
+  mehndiLocationEn: 'The Palm Garden & Courtyard',
+  mehndiLocationUr: 'دی پام گارڈن اینڈ کورٹ یارڈ',
+  mehndiLocationHi: 'द पाम गार्डन एंड कोर्टयार्ड',
+  mehndiAddressEn: 'Jumeirah Beach Road, Dubai, UAE',
+  mehndiAddressUr: 'جمیرہ بیچ روڈ، دبئی، متحدہ عرب امارات',
+  mehndiAddressHi: 'जुमेराह बीच रोड, दुबई, यूएई',
+  mehndiDateEn: 'Oct 27, 2026',
+  mehndiDateUr: '۲۷ اکتوبر ۲۰۲۶',
+  mehndiDateHi: '27 अक्टूबर 2026',
+  mehndiTimeEn: '7:00 PM',
+  mehndiTimeUr: 'شام ۷:۰۰ بجے',
+  mehndiTimeHi: 'शाम 7:00 बजे',
+  mehndiMapUrl: 'https://maps.google.com/?q=Jumeirah+Beach+Dubai',
+
+  baraatLocationEn: 'Burj Al Arab Grand Entrance Gate',
+  baraatLocationUr: 'برج العرب شاہی مین گیٹ',
+  baraatLocationHi: 'बुर्ज अल अरब ग्रैंड एंट्रेंस गेट',
+  baraatAddressEn: 'Umm Suqeim 3, Dubai, UAE',
+  baraatAddressUr: 'ام سقیم ۳، دبئی، متحدہ عرب امارات',
+  baraatAddressHi: 'उम्म सुक़ीम 3, दुबई, यूएई',
+  baraatDateEn: 'Oct 28, 2026',
+  baraatDateUr: '۲۸ اکتوبر ۲۰۲۶',
+  baraatDateHi: '28 अक्टूबर 2026',
+  baraatTimeEn: '5:30 PM',
+  baraatTimeUr: 'شام ۵:۳۰ بجے',
+  baraatTimeHi: 'शाम 5:30 बजे',
+  baraatMapUrl: 'https://maps.google.com/?q=Burj+Al+Arab+Dubai',
+
+  nikahLocationEn: 'Al Falak Royal Ballroom',
+  nikahLocationUr: 'الفلک شاہی بال روم، برج العرب',
+  nikahLocationHi: 'अल फलक रॉयल बॉलरूम',
+  nikahAddressEn: '27th Floor, Burj Al Arab, Dubai, UAE',
+  nikahAddressUr: '۲۷ویں منزل، برج العرب، دبئی',
+  nikahAddressHi: '27वीं मंजिल, बुर्ज अल अरब, दुबई',
+  nikahDateEn: 'Oct 28, 2026 (Wednesday)',
+  nikahDateUr: '۲۸ اکتوبر ۲۰۲۶ (بدھ)',
+  nikahDateHi: '28 अक्टूबर 2026 (बुधवार)',
+  nikahTimeEn: '6:00 PM',
+  nikahTimeUr: 'شام ۶:۰۰ بجے',
+  nikahTimeHi: 'शाम 6:00 बजे',
+  nikahMapUrl: 'https://maps.google.com/?q=Al+Falak+Ballroom+Burj+Al+Arab',
+
+  rukhsatiLocationEn: 'Sunset Marina Portico',
+  rukhsatiLocationUr: 'سن سیٹ مرینا پورٹیکو، دبئی',
+  rukhsatiLocationHi: 'सनसेट मरीना पोर्टिको',
+  rukhsatiAddressEn: 'Seaside Gate, Burj Al Arab, Dubai, UAE',
+  rukhsatiAddressUr: 'سی سائیڈ گیٹ، برج العرب، دبئی',
+  rukhsatiAddressHi: 'सी-साइड गेट, बुर्ज अल अरब, दुबई',
+  rukhsatiDateEn: 'Oct 28, 2026',
+  rukhsatiDateUr: '۲۸ اکتوبر ۲۰۲۶',
+  rukhsatiDateHi: '28 अक्टूबर 2026',
+  rukhsatiTimeEn: '9:00 PM',
+  rukhsatiTimeUr: 'رات ۹:۰۰ بجے',
+  rukhsatiTimeHi: 'रात 9:00 बजे',
+  rukhsatiMapUrl: 'https://maps.google.com/?q=Burj+Al+Arab+Dubai',
+  scratchSurpriseMessageEn: 'You are cordially invited to celebrate our Sacred Nikah. Your presence & prayers are our true blessing! 🤍',
+  scratchSurpriseMessageUr: 'آپ کو ہمارے بابرکت نکاح کی پرمسرت تقریب میں دل کی اتھاہ گہرائیوں سے دعوت دی جاتی ہے۔ آپ کی دعائیں ہمارے لیے انمول تحفہ ہیں! 🤍',
+  scratchSurpriseMessageHi: 'आप हमारे मुबारक़ निकाह के पवित्र अवसर पर सादर आमंत्रित हैं। आपकी नेक दुआएं ही हमारे लिए सबसे अनमोल तोहफ़ा हैं! 🤍',
   adminPin: '7860'
 };
 

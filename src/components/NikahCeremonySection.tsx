@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Calendar, Clock, MapPin, Images } from 'lucide-react';
+import { Calendar, Clock, MapPin, Images, ExternalLink } from 'lucide-react';
 import { Language } from '../types';
 import { NikahVideoPlayer } from './NikahVideoPlayer';
 import { WaveDivider } from './WaveDivider';
@@ -13,6 +13,16 @@ interface NikahCeremonySectionProps {
   locationEn?: string;
   locationUr?: string;
   locationHi?: string;
+  addressEn?: string;
+  addressUr?: string;
+  addressHi?: string;
+  dateEn?: string;
+  dateUr?: string;
+  dateHi?: string;
+  timeEn?: string;
+  timeUr?: string;
+  timeHi?: string;
+  mapUrl?: string;
 }
 
 export const NikahCeremonySection: React.FC<NikahCeremonySectionProps> = ({
@@ -21,7 +31,17 @@ export const NikahCeremonySection: React.FC<NikahCeremonySectionProps> = ({
   onVideoChange,
   locationEn,
   locationUr,
-  locationHi
+  locationHi,
+  addressEn,
+  addressUr,
+  addressHi,
+  dateEn,
+  dateUr,
+  dateHi,
+  timeEn,
+  timeUr,
+  timeHi,
+  mapUrl
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
@@ -244,7 +264,7 @@ export const NikahCeremonySection: React.FC<NikahCeremonySectionProps> = ({
       id="nikah-ceremony"
       className="relative w-full min-h-screen py-20 px-4 flex flex-col items-center justify-center overflow-hidden cursor-default select-none"
       style={{
-        background: 'radial-gradient(ellipse at 50% 30%, #ffffff 0%, #f7fdf9 40%, #ecfdf5 75%, #d1fae5 100%)'
+        background: 'radial-gradient(ellipse at 50% 25%, #f0fdfa 0%, #ccfbf1 25%, #99f6e4 58%, #5eead4 85%, #2dd4bf 100%)'
       }}
     >
       {/* 1. Interactive Noor Clouds & Falling Jasmine Canvas */}
@@ -300,11 +320,11 @@ export const NikahCeremonySection: React.FC<NikahCeremonySectionProps> = ({
       </div>
 
       {/* 4. Main Festive Nikah Card (Crystal Glass) */}
-      <div className="relative z-10 max-w-lg w-full mx-auto bg-white/40 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-[0_12px_32px_rgba(16,185,129,0.08)] border border-white/80 text-center transition-all duration-300">
+      <div className="relative z-10 max-w-lg w-full mx-auto bg-teal-50/90 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-[0_16px_40px_rgba(13,148,136,0.18)] border-2 border-teal-300/80 text-center transition-all duration-300">
         
         {/* Top Header Row with Ceremony Badge on Left and Gallery Icon Button on Right */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-600/15 border border-teal-400/30 text-teal-950 text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-600/20 border border-teal-400/50 text-teal-950 text-xs font-bold">
             <span>💍</span>
             <span>{language === 'ur' ? 'بابرکت نکاح' : language === 'hi' ? 'मुबारक निकाह' : 'Sacred Nikaah'}</span>
           </div>
@@ -312,7 +332,7 @@ export const NikahCeremonySection: React.FC<NikahCeremonySectionProps> = ({
           <button
             type="button"
             onClick={() => setIsGalleryOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md border border-teal-300/70 bg-white/90 hover:bg-white text-teal-950"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md border border-teal-300 bg-white/95 hover:bg-white text-teal-950"
             title={language === 'ur' ? 'نکاح تصویری گیلری' : language === 'hi' ? 'निकाह फोटो गैलरी' : 'Nikaah Ceremony Photos'}
           >
             <Images className="w-3.5 h-3.5 text-teal-600" />
@@ -353,53 +373,71 @@ export const NikahCeremonySection: React.FC<NikahCeremonySectionProps> = ({
         {/* Date & Time and Location Key Highlights */}
         <div className="max-w-md mx-auto mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
           {/* 1. Date & Time */}
-          <div className="p-2.5 rounded-2xl bg-white/25 backdrop-blur-[2px] border border-white/60 shadow-xs flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <div className="p-2.5 rounded-2xl bg-white/75 backdrop-blur-xs border border-teal-200/90 shadow-2xs flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm">
               <Calendar className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <span className={`text-[10px] font-bold uppercase tracking-wider text-emerald-900 block ${language === 'hi' ? 'font-hindi' : ''}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider text-teal-950 block ${language === 'hi' ? 'font-hindi' : ''}`}>
                 {language === 'ur' ? 'تاریخ و وقت' : language === 'hi' ? 'तारीख व समय' : 'Date & Time'}
               </span>
-              <p className="text-xs sm:text-sm font-extrabold text-emerald-950 mt-0.5 truncate">
+              <p className="text-xs sm:text-sm font-extrabold text-teal-950 mt-0.5 truncate">
                 {language === 'ur'
-                  ? '۲۸ اکتوبر ۲۰۲۶ (بدھ)'
+                  ? (dateUr || '۲۸ اکتوبر ۲۰۲۶ (بدھ)')
                   : language === 'hi'
-                  ? '28 अक्टूबर 2026 (बुधवार)'
-                  : 'Oct 28, 2026 (Wed)'}
+                  ? (dateHi || '28 अक्टूबर 2026 (बुधवार)')
+                  : (dateEn || 'Oct 28, 2026 (Wed)')}
               </p>
-              <div className="flex items-center gap-1 text-[11px] text-emerald-900 font-bold mt-0.5">
-                <Clock className="w-3 h-3 text-emerald-700 shrink-0" />
+              <div className="flex items-center gap-1 text-[11px] text-teal-950 font-bold mt-0.5">
+                <Clock className="w-3 h-3 text-teal-700 shrink-0" />
                 <span>
                   {language === 'ur'
-                    ? 'شام ۶:۰۰ بجے'
+                    ? (timeUr || 'شام ۶:۰۰ بجے')
                     : language === 'hi'
-                    ? 'शाम 6:00 बजे'
-                    : '6:00 PM'}
+                    ? (timeHi || 'शाम 6:00 बजे')
+                    : (timeEn || '6:00 PM')}
                 </span>
               </div>
             </div>
           </div>
 
           {/* 2. Location (لوکیشن / स्थान) */}
-          <div className="p-2.5 rounded-2xl bg-white/25 backdrop-blur-[2px] border border-white/60 shadow-xs flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <div className="p-2.5 rounded-2xl bg-white/75 backdrop-blur-xs border border-teal-200/90 shadow-2xs flex items-start gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
               <MapPin className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider text-emerald-900 block ${language === 'hi' ? 'font-hindi' : ''}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider text-teal-950 block ${language === 'hi' ? 'font-hindi' : ''}`}>
                 {language === 'ur' ? 'مقام (Location)' : language === 'hi' ? 'स्थान (Location)' : 'Location'}
               </span>
-              <p className={`text-xs sm:text-sm font-extrabold text-emerald-950 mt-0.5 leading-tight ${language === 'hi' ? 'font-hindi' : ''}`}>
+              <p className={`text-xs sm:text-sm font-extrabold text-teal-950 mt-0.5 leading-tight ${language === 'hi' ? 'font-hindi' : ''}`}>
                 {language === 'ur'
-                  ? (locationUr || 'برج العرب گرینڈ بال روم، دبئی')
+                  ? (locationUr || 'برج العرب گرینڈ الفلک بال روم')
                   : language === 'hi'
-                  ? (locationHi || 'बुर्ज अल अरब ग्रैंड बॉलरूम, दुबई')
-                  : (locationEn || 'Burj Al Arab Grand Ballroom, Dubai')}
+                  ? (locationHi || 'बुर्ज अल अरब ग्रैंड अल फलक बॉलरूम')
+                  : (locationEn || 'Burj Al Arab Grand Al Falak Ballroom')}
               </p>
-              <span className="inline-block text-[10px] text-emerald-800 font-semibold mt-0.5">
-                📍 {language === 'ur' ? 'دبئی، متحدہ عرب امارات' : language === 'hi' ? 'दुबई, यूएई' : 'Dubai, UAE'}
-              </span>
+              <p className="text-[10px] text-teal-950/80 font-medium mt-0.5 leading-snug">
+                {language === 'ur'
+                  ? (addressUr || '۲۷ویں منزل، برج العرب، جمیرہ، دبئی')
+                  : language === 'hi'
+                  ? (addressHi || '27वीं मंजिल, बुर्ज अल अरब, जुमेराह, दुबई')
+                  : (addressEn || '27th Floor, Burj Al Arab, Jumeirah, Dubai')}
+              </p>
+              {mapUrl && (
+                <a
+                  href={mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-teal-950 bg-teal-200/90 hover:bg-teal-300 px-2 py-0.5 rounded-full transition-all active:scale-95 shadow-2xs"
+                >
+                  <MapPin className="w-2.5 h-2.5" />
+                  <span>
+                    {language === 'ur' ? 'گوگل میپ پر دیکھیں' : language === 'hi' ? 'गूगल मैप पर देखें' : 'View on Map'}
+                  </span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -407,7 +445,7 @@ export const NikahCeremonySection: React.FC<NikahCeremonySectionProps> = ({
       </div>
 
       {/* Bottom organic wave transition into Rukhsati section */}
-      <WaveDivider position="bottom" fillColor="#fdf4f8" variant="wave3" />
+      <WaveDivider position="bottom" fillColor="#fdf4ff" variant="wave3" />
 
       {/* Dedicated Ceremony Photo Gallery Modal */}
       <CeremonyGalleryModal

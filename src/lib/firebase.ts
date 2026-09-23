@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
+  initializeFirestore,
   getFirestore, 
   doc, 
   getDoc, 
@@ -10,7 +11,8 @@ import {
   query,
   orderBy,
   limit,
-  serverTimestamp
+  serverTimestamp,
+  Firestore
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { WeddingData, RsvpData } from '../types';
@@ -25,10 +27,24 @@ const app = getApps().length > 0 ? getApp() : initializeApp({
   appId: firebaseConfig.appId,
 });
 
-// Initialize Firestore with specific Database ID if provided
-export const db = firebaseConfig.firestoreDatabaseId 
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-  : getFirestore(app);
+// Initialize Firestore with robust long-polling to prevent WebChannel stream disconnection behind proxies/iframes
+let dbInstance: Firestore;
+try {
+  dbInstance = initializeFirestore(
+    app,
+    {
+      experimentalForceLongPolling: true,
+    },
+    firebaseConfig.firestoreDatabaseId || '(default)'
+  );
+} catch {
+  // If already initialized in hot-reload or another module
+  dbInstance = firebaseConfig.firestoreDatabaseId
+    ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+    : getFirestore(app);
+}
+
+export const db = dbInstance;
 
 const SETTINGS_DOC_ID = 'main';
 const SETTINGS_COLLECTION = 'wedding_settings';

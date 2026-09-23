@@ -1,6 +1,6 @@
 {
   "name": "Wedding Invitation - Abdul Qadir weds Fozia Khan",
-  "description": "Interactive royal Islamic wedding invitation featuring 3D gate opening, swaying rope-hung groom and bride portraits for tablet/window views with full admin photo customization, 5 dedicated ceremony sections with video players, maps, and real-time cloud RSVP.",
+  "description": "Interactive royal Islamic wedding invitation featuring 3D gate opening, interactive gold coin scratch reveal card with confetti & auspicious Nikah muhurat, swaying rope-hung portraits, 5 dedicated ceremony sections with video players, and real-time cloud RSVP.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

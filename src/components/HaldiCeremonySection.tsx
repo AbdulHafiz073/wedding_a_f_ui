@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Calendar, Clock, Images, MapPin } from 'lucide-react';
+import { Calendar, Clock, Images, MapPin, ExternalLink } from 'lucide-react';
 import { Language } from '../types';
 import { HaldiVideoPlayer } from './HaldiVideoPlayer';
 import { WaveDivider } from './WaveDivider';
@@ -13,6 +13,16 @@ interface HaldiCeremonySectionProps {
   locationEn?: string;
   locationUr?: string;
   locationHi?: string;
+  addressEn?: string;
+  addressUr?: string;
+  addressHi?: string;
+  dateEn?: string;
+  dateUr?: string;
+  dateHi?: string;
+  timeEn?: string;
+  timeUr?: string;
+  timeHi?: string;
+  mapUrl?: string;
 }
 
 export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
@@ -21,7 +31,17 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
   onVideoChange,
   locationEn,
   locationUr,
-  locationHi
+  locationHi,
+  addressEn,
+  addressUr,
+  addressHi,
+  dateEn,
+  dateUr,
+  dateHi,
+  timeEn,
+  timeUr,
+  timeHi,
+  mapUrl
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
@@ -238,7 +258,7 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
       id="haldi-ceremony"
       className="relative w-full min-h-screen py-20 px-4 flex flex-col items-center justify-center overflow-hidden cursor-default select-none"
       style={{
-        background: 'radial-gradient(ellipse at 50% 30%, #ffffff 0%, #fffef0 35%, #fef9c3 70%, #fef3c7 100%)'
+        background: 'radial-gradient(ellipse at 50% 25%, #fffdf0 0%, #fef9c3 25%, #fef08a 58%, #fde047 85%, #facc15 100%)'
       }}
     >
       {/* 1. Interactive Haldi Powder Clouds & Falling Marigold Canvas */}
@@ -280,8 +300,8 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
         ))}
       </div>
 
-      {/* 4. Main Festive Haldi Card (Luminous Pastel Glass) */}
-      <div className="relative z-10 max-w-lg w-full mx-auto bg-white/40 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-[0_12px_32px_rgba(217,119,6,0.08)] border border-white/80 text-center transition-all duration-300">
+      {/* 4. Main Festive Haldi Card (Luminous Golden Glass) */}
+      <div className="relative z-10 max-w-lg w-full mx-auto bg-amber-50/90 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-[0_16px_40px_rgba(217,119,6,0.18)] border-2 border-amber-300/80 text-center transition-all duration-300">
         
         {/* Top Header Row with Ceremony Badge on Left and Gallery Icon Button on Right */}
         <div className="flex items-center justify-between gap-2 mb-3">
@@ -334,7 +354,7 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
         {/* Date & Time and Location Key Highlights */}
         <div className="max-w-md mx-auto mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
           {/* 1. Date & Time */}
-          <div className="p-2.5 rounded-2xl bg-white/25 backdrop-blur-[2px] border border-white/60 shadow-xs flex items-center gap-2.5">
+          <div className="p-2.5 rounded-2xl bg-white/75 backdrop-blur-xs border border-amber-200/90 shadow-2xs flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
               <Calendar className="w-4 h-4" />
             </div>
@@ -344,27 +364,27 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
               </span>
               <p className="text-xs sm:text-sm font-extrabold text-amber-950 mt-0.5 truncate">
                 {language === 'ur'
-                  ? '۲۶ اکتوبر ۲۰۲۶'
+                  ? (dateUr || '۲۶ اکتوبر ۲۰۲۶')
                   : language === 'hi'
-                  ? '26 अक्टूबर 2026'
-                  : 'Oct 26, 2026'}
+                  ? (dateHi || '26 अक्टूबर 2026')
+                  : (dateEn || 'Oct 26, 2026')}
               </p>
               <div className="flex items-center gap-1 text-[11px] text-amber-900 font-bold mt-0.5">
                 <Clock className="w-3 h-3 text-amber-700 shrink-0" />
                 <span>
                   {language === 'ur'
-                    ? 'شام ۶:۳۰ بجے'
+                    ? (timeUr || 'شام ۶:۳۰ بجے')
                     : language === 'hi'
-                    ? 'शाम 6:30 बजे'
-                    : '6:30 PM'}
+                    ? (timeHi || 'शाम 6:30 बजे')
+                    : (timeEn || '6:30 PM')}
                 </span>
               </div>
             </div>
           </div>
 
           {/* 2. Location (لوکیشن / स्थान) */}
-          <div className="p-2.5 rounded-2xl bg-white/25 backdrop-blur-[2px] border border-white/60 shadow-xs flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <div className="p-2.5 rounded-2xl bg-white/75 backdrop-blur-xs border border-amber-200/90 shadow-2xs flex items-start gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
               <MapPin className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
@@ -373,14 +393,32 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
               </span>
               <p className={`text-xs sm:text-sm font-extrabold text-amber-950 mt-0.5 leading-tight ${language === 'hi' ? 'font-hindi' : ''}`}>
                 {language === 'ur'
-                  ? (locationUr || 'فیملی کورٹ یارڈ، دبئی')
+                  ? (locationUr || 'شاہی بلاسم گارڈنز (ہلدی لان)')
                   : language === 'hi'
-                  ? (locationHi || 'फ़ैमिली कोर्टयार्ड, दुबई')
-                  : (locationEn || 'Family Courtyard, Dubai')}
+                  ? (locationHi || 'रॉयल ब्लॉसम गार्डन्स (हल्दी लॉन)')
+                  : (locationEn || 'Royal Blossom Gardens (Haldi Lawn)')}
               </p>
-              <span className="inline-block text-[10px] text-amber-800 font-semibold mt-0.5">
-                📍 {language === 'ur' ? 'دبئی، متحدہ عرب امارات' : language === 'hi' ? 'दुबई, यूएई' : 'Dubai, UAE'}
-              </span>
+              <p className="text-[10px] text-amber-900/80 font-medium mt-0.5 leading-snug">
+                {language === 'ur'
+                  ? (addressUr || 'العویر روڈ، دبئی، متحدہ عرب امارات')
+                  : language === 'hi'
+                  ? (addressHi || 'अल अवीर रोड, दुबई, यूएई')
+                  : (addressEn || 'Al Awir Road, Dubai, UAE')}
+              </p>
+              {mapUrl && (
+                <a
+                  href={mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-amber-950 bg-amber-300/80 hover:bg-amber-400 px-2 py-0.5 rounded-full transition-all active:scale-95 shadow-2xs"
+                >
+                  <MapPin className="w-2.5 h-2.5" />
+                  <span>
+                    {language === 'ur' ? 'گوگل میپ پر دیکھیں' : language === 'hi' ? 'गूगल मैप पर देखें' : 'View on Map'}
+                  </span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                </a>
+              )}
             </div>
           </div>
         </div>

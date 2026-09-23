@@ -84,10 +84,10 @@ export const JannatVideoScene: React.FC<JannatVideoSceneProps> = ({
   return (
     <div className="absolute inset-0 overflow-hidden rounded-t-[152px] bg-[#0c1822]">
       
-      {/* 1. Romantic Royal Couple Image Background (No rings - Pure couple portrait) */}
+      {/* 1. Romantic Royal Couple Image Background (Crystal Clear, Pristine High-Definition Portrait) */}
       <div className="relative w-full h-full will-change-transform flex items-center justify-center overflow-hidden">
         
-        {/* Cinematic Zooming / Panning Couple Image */}
+        {/* Cinematic Zooming / Panning Couple Image - 100% Crisp, Clear & Bright (No blur, no heavy filters) */}
         {photos.map((photo, idx) => (
           <div
             key={photo + idx}
@@ -98,40 +98,24 @@ export const JannatVideoScene: React.FC<JannatVideoSceneProps> = ({
             <img
               src={photo}
               alt={`${groomName} weds ${brideName}`}
-              className={`w-full h-full object-cover object-center transition-transform duration-[6000ms] ease-out ${
-                isZooming ? 'scale-110' : 'scale-100'
+              className={`w-full h-full object-cover object-[center_20%] sm:object-center transition-transform duration-[6000ms] ease-out ${
+                isZooming ? 'scale-105' : 'scale-100'
               }`}
-              style={{ filter: 'brightness(0.92) contrast(1.05)' }}
+              style={{
+                filter: 'brightness(1.02) contrast(1.02) saturate(1.05)',
+                imageRendering: 'auto'
+              }}
             />
           </div>
         ))}
 
-        {/* Ornate Inner Arch Gold Glow Frame */}
-        <div className="absolute inset-1.5 rounded-t-[146px] border border-[#d4af37]/60 pointer-events-none shadow-[inset_0_0_25px_rgba(212,175,55,0.35)]" />
+        {/* Ornate Inner Arch Gold Border (Clean boundary without foggy inner glow) */}
+        <div className="absolute inset-1.5 rounded-t-[146px] border border-[#d4af37]/70 pointer-events-none shadow-[0_0_12px_rgba(212,175,55,0.3)]" />
 
-        {/* Ambient Heavenly Lighting & Vignette for Readability */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse at 50% 30%, rgba(255, 235, 170, 0.25) 0%, rgba(15, 30, 45, 0.5) 60%, rgba(5, 12, 18, 0.88) 100%)'
-          }}
-        />
+        {/* Subtle Top & Bottom Gradient ONLY for Text Readability - Couple Faces in Center & Upper Half remain 100% Crystal Clear */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent via-45% to-black/85 pointer-events-none" />
 
-        {/* Top-to-Bottom Gradient Overlay to make Text Crisp & Pristine */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/85 pointer-events-none" />
-
-        {/* Heavenly Light Beams */}
-        <div
-          className="absolute -top-10 inset-x-0 h-44 pointer-events-none opacity-40 animate-pulse mix-blend-screen"
-          style={{
-            background:
-              'conic-gradient(from 180deg at 50% 0%, rgba(255,245,200,0.4) 0deg, transparent 25deg, rgba(255,230,160,0.5) 45deg, transparent 65deg, rgba(255,250,220,0.6) 90deg, transparent 115deg, rgba(255,230,160,0.5) 135deg, transparent 155deg, rgba(255,245,200,0.4) 180deg)',
-            filter: 'blur(1.5px)'
-          }}
-        />
-
-        {/* Floating Rose Petals & Golden Stardust Particles */}
+        {/* Floating Rose Petals & Golden Stardust Particles (Non-intrusive) */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full bg-white shadow-[0_0_12px_#fff] animate-ping [animation-duration:2.5s]" />
           <div className="absolute top-1/3 right-1/4 w-2.5 h-2.5 rounded-full bg-[#ffeaa7] shadow-[0_0_15px_#ffeaa7] animate-ping [animation-duration:3.2s]" />
@@ -209,19 +193,19 @@ export const JannatVideoScene: React.FC<JannatVideoSceneProps> = ({
           </p>
         </div>
 
-        {/* Center: Grand Dulha & Dulhan Name Reveal with 'weds' (Instead of '&') */}
-        <div className="my-auto flex flex-col items-center px-3 py-2.5 rounded-2xl bg-black/55 backdrop-blur-md border border-[#d4af37]/50 shadow-[0_8px_32px_rgba(0,0,0,0.75)] w-full max-w-[270px]">
+        {/* Lower Placement: Grand Dulha & Dulhan Name Reveal with 'weds' positioned below the couple faces */}
+        <div className="mt-auto mb-2 flex flex-col items-center px-3 py-1.5 rounded-2xl bg-black/60 backdrop-blur-xs border border-[#d4af37]/60 shadow-[0_6px_28px_rgba(0,0,0,0.8)] w-full max-w-[270px]">
           
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <span className="w-6 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
-            <Heart className="w-4 h-4 text-[#ff4757] fill-[#ff4757] animate-heartbeat" />
-            <span className="w-6 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
+          <div className="flex items-center justify-center gap-2 mb-0.5">
+            <span className="w-5 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
+            <Heart className="w-3.5 h-3.5 text-[#ff4757] fill-[#ff4757] animate-heartbeat" />
+            <span className="w-5 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
           </div>
 
           {/* English Grand Script Names with 'weds' */}
-          <h1 className="font-display text-2xl sm:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-[#ffeaa7] via-[#ffffff] to-[#d4af37] drop-shadow-[0_4px_16px_rgba(212,175,55,0.95)] tracking-wide leading-tight mb-0.5 font-bold">
+          <h1 className="font-display text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-[#ffeaa7] via-[#ffffff] to-[#d4af37] drop-shadow-[0_2px_12px_rgba(212,175,55,0.95)] tracking-wide leading-tight mb-0.5 font-bold">
             {groomName}
-            <span className="block text-xl sm:text-2xl font-script text-[#f4e4a6] my-0.5 lowercase italic drop-shadow-[0_0_10px_rgba(244,228,166,0.9)] font-normal">
+            <span className="inline-block text-lg sm:text-xl font-script text-[#f4e4a6] mx-1.5 lowercase italic drop-shadow-[0_0_8px_rgba(244,228,166,0.9)] font-normal">
               weds
             </span>
             {brideName}
@@ -229,17 +213,17 @@ export const JannatVideoScene: React.FC<JannatVideoSceneProps> = ({
 
           {/* Urdu / Hindi Names if available */}
           {language === 'hi' && (groomNameHi || brideNameHi) ? (
-            <h2 className="font-hindi text-base sm:text-lg text-[#f4e4a6] drop-shadow-md mt-0.5 font-bold">
+            <h2 className="font-hindi text-sm sm:text-base text-[#f4e4a6] drop-shadow-md font-bold">
               {groomNameHi || groomName} <span className="font-script lowercase text-white">weds</span> {brideNameHi || brideName}
             </h2>
           ) : (groomNameUr || brideNameUr) ? (
-            <h2 className="font-urdu text-lg sm:text-xl text-[#f4e4a6] drop-shadow-md mt-0.5 font-bold">
+            <h2 className="font-urdu text-base sm:text-lg text-[#f4e4a6] drop-shadow-md font-bold">
               {groomNameUr} ❤️ {brideNameUr}
             </h2>
           ) : null}
 
           {/* Sacred Nikah Mubarak blessing */}
-          <p className={`text-[10px] sm:text-xs tracking-wider text-amber-200/90 uppercase mt-1.5 font-medium ${language === 'hi' ? 'font-hindi' : 'font-display'}`}>
+          <p className={`text-[9px] sm:text-[10px] tracking-wider text-amber-200/90 uppercase mt-0.5 font-medium ${language === 'hi' ? 'font-hindi' : 'font-display'}`}>
             {language === 'ur'
               ? 'بارک اللہ لکما وبارک علیکما'
               : language === 'hi'

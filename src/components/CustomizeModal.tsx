@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
   Check, 
@@ -15,7 +15,10 @@ import {
   Trash2,
   Video,
   Film,
-  Upload
+  Upload,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { WeddingData, Language, FamilyMember } from '../types';
 
@@ -38,6 +41,33 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<WeddingData>({ ...data });
   const [activeTab, setActiveTab] = useState<TabType>('names');
+
+  // Tabs Slider ref & scroll state for mobile and small screens
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkTabsScroll = () => {
+    if (tabsContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsContainerRef.current;
+      setCanScrollLeft(scrollLeft > 4);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkTabsScroll();
+    window.addEventListener('resize', checkTabsScroll);
+    return () => window.removeEventListener('resize', checkTabsScroll);
+  }, [isOpen]);
+
+  const slideTabs = (direction: 'left' | 'right') => {
+    if (tabsContainerRef.current) {
+      const offset = direction === 'left' ? -160 : 160;
+      tabsContainerRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+      setTimeout(checkTabsScroll, 250);
+    }
+  };
 
   // Sync state whenever modal is opened
   useEffect(() => {
@@ -220,102 +250,146 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
           </button>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-100 overflow-x-auto select-none">
-          <button
-            type="button"
-            onClick={() => setActiveTab('names')}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
-              activeTab === 'names'
-                ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <User className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>
-              {language === 'ur'
-                ? '۱. نام (Names)'
-                : language === 'hi'
-                ? '१. नाम (Names)'
-                : '1. Names'}
-            </span>
-          </button>
+        {/* Navigation Tabs Bar with Mobile Slider Controls */}
+        <div className="relative bg-gray-50 border-b border-gray-100 select-none">
+          {/* Left Arrow Slide Button */}
+          {canScrollLeft && (
+            <button
+              type="button"
+              onClick={() => slideTabs('left')}
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/95 hover:bg-[#d4af37] text-gray-700 hover:text-white border border-gray-200 shadow-md flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs"
+              aria-label="Slide tabs left"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('family')}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
-              activeTab === 'family'
-                ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>
-              {language === 'ur'
-                ? '۲. اہلِ خانہ (Family)'
-                : language === 'hi'
-                ? '२. परिवारजन (Family)'
-                : '2. Family'}
-            </span>
-          </button>
+          {/* Right Arrow Slide Button */}
+          {canScrollRight && (
+            <button
+              type="button"
+              onClick={() => slideTabs('right')}
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/95 hover:bg-[#d4af37] text-gray-700 hover:text-white border border-gray-200 shadow-md flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs"
+              aria-label="Slide tabs right"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('datetime')}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
-              activeTab === 'datetime'
-                ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+          {/* Left / Right Gradient Fade cues for smooth slider look */}
+          <div
+            className={`pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-gray-50 to-transparent z-5 transition-opacity ${
+              canScrollLeft ? 'opacity-100' : 'opacity-0'
             }`}
-          >
-            <Calendar className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>
-              {language === 'ur'
-                ? '۳. تاریخ و وقت (Date)'
-                : language === 'hi'
-                ? '३. तारीख व समय (Date)'
-                : '3. Date & Time'}
-            </span>
-          </button>
+          />
+          <div
+            className={`pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-50 to-transparent z-5 transition-opacity ${
+              canScrollRight ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('location')}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
-              activeTab === 'location'
-                ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+          {/* Scrollable Tabs Slider Container */}
+          <div
+            ref={tabsContainerRef}
+            onScroll={checkTabsScroll}
+            className="flex items-center gap-1.5 p-2 px-3 overflow-x-auto no-scrollbar scroll-smooth"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            <MapPin className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>
-              {language === 'ur'
-                ? '۴. مقام و وینیو (Location)'
-                : language === 'hi'
-                ? '४. स्थान व वैन्यू (Location)'
-                : '4. Location'}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('names')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
+                activeTab === 'names'
+                  ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <User className="w-3.5 h-3.5 text-[#d4af37]" />
+              <span>
+                {language === 'ur'
+                  ? '۱. نام (Names)'
+                  : language === 'hi'
+                  ? '१. नाम (Names)'
+                  : '1. Names'}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('video')}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
-              activeTab === 'video'
-                ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <Video className="w-3.5 h-3.5 text-[#e74c3c]" />
-            <span>
-              {language === 'ur'
-                ? '۵. ویڈیوز و تصاویر (Media)'
-                : language === 'hi'
-                ? '५. वीडियो व फोटो (Media)'
-                : '5. Videos & Photos'}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('family')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
+                activeTab === 'family'
+                  ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5 text-[#d4af37]" />
+              <span>
+                {language === 'ur'
+                  ? '۲. اہلِ خانہ (Family)'
+                  : language === 'hi'
+                  ? '२. परिवारजन (Family)'
+                  : '2. Family'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('datetime')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
+                activeTab === 'datetime'
+                  ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5 text-[#d4af37]" />
+              <span>
+                {language === 'ur'
+                  ? '۳. تاریخ و وقت (Date)'
+                  : language === 'hi'
+                  ? '३. तारीख व समय (Date)'
+                  : '3. Date & Time'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('location')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
+                activeTab === 'location'
+                  ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5 text-[#d4af37]" />
+              <span>
+                {language === 'ur'
+                  ? '۴. مقام و وینیو (Location)'
+                  : language === 'hi'
+                  ? '४. स्थान व वैन्यू (Location)'
+                  : '4. Location'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('video')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold font-display transition-all shrink-0 cursor-pointer ${
+                activeTab === 'video'
+                  ? 'bg-white text-[#1a3a4d] shadow-sm border border-gray-200 text-[#2c5f7c]'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <Video className="w-3.5 h-3.5 text-[#e74c3c]" />
+              <span>
+                {language === 'ur'
+                  ? '۵. ویڈیوز و تصاویر (Media)'
+                  : language === 'hi'
+                  ? '५. वीडियो व फोटो (Media)'
+                  : '5. Videos & Photos'}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Form Body with Scroll */}
@@ -488,6 +562,75 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
                   </button>
                 </div>
 
+                {/* Groom Family Logo / Badge */}
+                <div className="p-2.5 bg-white border border-amber-200 rounded-xl space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-amber-900 flex items-center gap-1">
+                      <ImageIcon className="w-3.5 h-3.5 text-[#d4af37]" />
+                      Groom's Family Logo / Badge Image (دولہا فیملی لوگو)
+                    </label>
+                    {formData.groomFamily?.badgeImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          groomFamily: { ...formData.groomFamily, badgeImageUrl: undefined }
+                        })}
+                        className="text-[10px] text-red-500 hover:underline"
+                      >
+                        Reset to 🤵 icon
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {formData.groomFamily?.badgeImageUrl ? (
+                      <img
+                        src={formData.groomFamily.badgeImageUrl}
+                        alt="Groom Logo"
+                        className="w-10 h-10 rounded-lg object-cover border border-amber-400 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-300 flex items-center justify-center text-lg shrink-0">
+                        🤵
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      placeholder="Paste image URL"
+                      value={formData.groomFamily?.badgeImageUrl || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        groomFamily: { ...formData.groomFamily, badgeImageUrl: e.target.value }
+                      })}
+                      className="flex-1 px-2.5 py-1 border border-gray-200 rounded-lg text-xs"
+                    />
+                    <label className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold cursor-pointer border border-gray-300 flex items-center gap-1 shrink-0">
+                      <Upload className="w-3 h-3 text-[#d4af37]" />
+                      <span>Upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              if (ev.target?.result) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  groomFamily: { ...prev.groomFamily, badgeImageUrl: ev.target!.result as string }
+                                }));
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
                 {/* Parent Intro Line */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
@@ -534,44 +677,89 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
                   {(formData.groomFamily?.members || []).map((member, mIdx) => (
                     <div
                       key={member.id || mIdx}
-                      className="p-2.5 bg-white rounded-xl border border-gray-200/80 shadow-2xs flex flex-col sm:flex-row items-center gap-2"
+                      className="p-2.5 bg-white rounded-xl border border-gray-200/80 shadow-2xs space-y-2"
                     >
-                      <input
-                        type="text"
-                        value={member.nameEn}
-                        onChange={(e) => handleUpdateMember('groom', mIdx, 'nameEn', e.target.value)}
-                        placeholder="Name (English)"
-                        className="w-full sm:flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs"
-                      />
-                      <input
-                        type="text"
-                        value={member.nameUr}
-                        onChange={(e) => handleUpdateMember('groom', mIdx, 'nameUr', e.target.value)}
-                        placeholder="نام (اردو)"
-                        className="w-full sm:flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-right font-urdu"
-                      />
-                      <input
-                        type="text"
-                        value={member.relationEn}
-                        onChange={(e) => handleUpdateMember('groom', mIdx, 'relationEn', e.target.value)}
-                        placeholder="Relation (e.g. Brother)"
-                        className="w-full sm:w-28 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs"
-                      />
-                      <input
-                        type="text"
-                        value={member.relationUr}
-                        onChange={(e) => handleUpdateMember('groom', mIdx, 'relationUr', e.target.value)}
-                        placeholder="رشتہ (اردو)"
-                        className="w-full sm:w-28 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-right font-urdu"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMember('groom', mIdx)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                        title="Remove member"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <input
+                          type="text"
+                          value={member.nameEn}
+                          onChange={(e) => handleUpdateMember('groom', mIdx, 'nameEn', e.target.value)}
+                          placeholder="Name (English)"
+                          className="w-full sm:flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={member.nameUr}
+                          onChange={(e) => handleUpdateMember('groom', mIdx, 'nameUr', e.target.value)}
+                          placeholder="نام (اردو)"
+                          className="w-full sm:flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-right font-urdu"
+                        />
+                        <input
+                          type="text"
+                          value={member.relationEn}
+                          onChange={(e) => handleUpdateMember('groom', mIdx, 'relationEn', e.target.value)}
+                          placeholder="Relation (e.g. Brother)"
+                          className="w-full sm:w-28 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={member.relationUr}
+                          onChange={(e) => handleUpdateMember('groom', mIdx, 'relationUr', e.target.value)}
+                          placeholder="رشتہ (اردو)"
+                          className="w-full sm:w-28 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-right font-urdu"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMember('groom', mIdx)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
+                          title="Remove member"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Photo line for member */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+                        {member.imageUrl ? (
+                          <img
+                            src={member.imageUrl}
+                            alt={member.nameEn || 'Photo'}
+                            className="w-7 h-7 rounded-full object-cover border border-amber-400 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-[10px] shrink-0 border border-gray-200">
+                            👤
+                          </div>
+                        )}
+                        <input
+                          type="text"
+                          value={member.imageUrl || ''}
+                          onChange={(e) => handleUpdateMember('groom', mIdx, 'imageUrl', e.target.value)}
+                          placeholder="Photo URL (optional)"
+                          className="flex-1 px-2 py-1 border border-gray-200 rounded-md text-[11px]"
+                        />
+                        <label className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-200 flex items-center gap-1 shrink-0">
+                          <Upload className="w-2.5 h-2.5 text-[#d4af37]" />
+                          <span>Photo</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  if (ev.target?.result) {
+                                    handleUpdateMember('groom', mIdx, 'imageUrl', ev.target!.result as string);
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -598,6 +786,75 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
                     <Plus className="w-3 h-3" />
                     <span>{language === 'ur' ? 'نیا رکن شامل کریں' : 'Add Member'}</span>
                   </button>
+                </div>
+
+                {/* Bride Family Logo / Badge */}
+                <div className="p-2.5 bg-white border border-rose-200 rounded-xl space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-rose-900 flex items-center gap-1">
+                      <ImageIcon className="w-3.5 h-3.5 text-rose-500" />
+                      Bride's Family Logo / Badge Image (دلہن فیملی لوگو)
+                    </label>
+                    {formData.brideFamily?.badgeImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          brideFamily: { ...formData.brideFamily, badgeImageUrl: undefined }
+                        })}
+                        className="text-[10px] text-red-500 hover:underline"
+                      >
+                        Reset to 👰 icon
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {formData.brideFamily?.badgeImageUrl ? (
+                      <img
+                        src={formData.brideFamily.badgeImageUrl}
+                        alt="Bride Logo"
+                        className="w-10 h-10 rounded-lg object-cover border border-rose-400 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-rose-50 border border-rose-300 flex items-center justify-center text-lg shrink-0">
+                        👰
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      placeholder="Paste image URL"
+                      value={formData.brideFamily?.badgeImageUrl || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        brideFamily: { ...formData.brideFamily, badgeImageUrl: e.target.value }
+                      })}
+                      className="flex-1 px-2.5 py-1 border border-gray-200 rounded-lg text-xs"
+                    />
+                    <label className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold cursor-pointer border border-gray-300 flex items-center gap-1 shrink-0">
+                      <Upload className="w-3 h-3 text-rose-500" />
+                      <span>Upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              if (ev.target?.result) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  brideFamily: { ...prev.brideFamily, badgeImageUrl: ev.target!.result as string }
+                                }));
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 {/* Parent Intro Line */}
@@ -646,44 +903,89 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
                   {(formData.brideFamily?.members || []).map((member, mIdx) => (
                     <div
                       key={member.id || mIdx}
-                      className="p-2.5 bg-white rounded-xl border border-gray-200/80 shadow-2xs flex flex-col sm:flex-row items-center gap-2"
+                      className="p-2.5 bg-white rounded-xl border border-gray-200/80 shadow-2xs space-y-2"
                     >
-                      <input
-                        type="text"
-                        value={member.nameEn}
-                        onChange={(e) => handleUpdateMember('bride', mIdx, 'nameEn', e.target.value)}
-                        placeholder="Name (English)"
-                        className="w-full sm:flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs"
-                      />
-                      <input
-                        type="text"
-                        value={member.nameUr}
-                        onChange={(e) => handleUpdateMember('bride', mIdx, 'nameUr', e.target.value)}
-                        placeholder="نام (اردو)"
-                        className="w-full sm:flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-right font-urdu"
-                      />
-                      <input
-                        type="text"
-                        value={member.relationEn}
-                        onChange={(e) => handleUpdateMember('bride', mIdx, 'relationEn', e.target.value)}
-                        placeholder="Relation (e.g. Sister)"
-                        className="w-full sm:w-28 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs"
-                      />
-                      <input
-                        type="text"
-                        value={member.relationUr}
-                        onChange={(e) => handleUpdateMember('bride', mIdx, 'relationUr', e.target.value)}
-                        placeholder="رشتہ (اردو)"
-                        className="w-full sm:w-28 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-right font-urdu"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMember('bride', mIdx)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                        title="Remove member"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <input
+                          type="text"
+                          value={member.nameEn}
+                          onChange={(e) => handleUpdateMember('bride', mIdx, 'nameEn', e.target.value)}
+                          placeholder="Name (English)"
+                          className="w-full sm:flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={member.nameUr}
+                          onChange={(e) => handleUpdateMember('bride', mIdx, 'nameUr', e.target.value)}
+                          placeholder="نام (اردو)"
+                          className="w-full sm:flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-right font-urdu"
+                        />
+                        <input
+                          type="text"
+                          value={member.relationEn}
+                          onChange={(e) => handleUpdateMember('bride', mIdx, 'relationEn', e.target.value)}
+                          placeholder="Relation (e.g. Sister)"
+                          className="w-full sm:w-28 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={member.relationUr}
+                          onChange={(e) => handleUpdateMember('bride', mIdx, 'relationUr', e.target.value)}
+                          placeholder="رشتہ (اردو)"
+                          className="w-full sm:w-28 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-right font-urdu"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMember('bride', mIdx)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
+                          title="Remove member"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Photo line for member */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+                        {member.imageUrl ? (
+                          <img
+                            src={member.imageUrl}
+                            alt={member.nameEn || 'Photo'}
+                            className="w-7 h-7 rounded-full object-cover border border-rose-400 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-[10px] shrink-0 border border-gray-200">
+                            👤
+                          </div>
+                        )}
+                        <input
+                          type="text"
+                          value={member.imageUrl || ''}
+                          onChange={(e) => handleUpdateMember('bride', mIdx, 'imageUrl', e.target.value)}
+                          placeholder="Photo URL (optional)"
+                          className="flex-1 px-2 py-1 border border-gray-200 rounded-md text-[11px]"
+                        />
+                        <label className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-200 flex items-center gap-1 shrink-0">
+                          <Upload className="w-2.5 h-2.5 text-rose-500" />
+                          <span>Photo</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  if (ev.target?.result) {
+                                    handleUpdateMember('bride', mIdx, 'imageUrl', ev.target!.result as string);
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
                     </div>
                   ))}
                 </div>

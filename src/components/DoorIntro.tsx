@@ -451,15 +451,45 @@ export const DoorIntro: React.FC<DoorIntroProps> = ({
                   <div className="mb-2 p-2 rounded-full bg-white/10 backdrop-blur-md border border-[#d4af37]/40 shadow-lg">
                     <Sparkles className="w-5 h-5 text-[#f4e4a6]" />
                   </div>
-                  <h1 className={`text-4xl sm:text-5xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] text-white tracking-wide mb-2 ${language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi font-bold' : 'font-script'}`}>
-                    {language === 'ur' ? 'آپ مدعو ہیں' : language === 'hi' ? 'सादर आमंत्रण' : "You're Invited"}
-                  </h1>
-                  <p className={`text-xs sm:text-sm tracking-[0.25em] uppercase text-[#f4e4a6] flex items-center gap-2 drop-shadow-md ${language === 'hi' ? 'font-hindi' : 'font-display'}`}>
-                    <span className="w-4 h-4 rounded-full border border-white/90 flex items-center justify-center animate-tapPulse">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  {/* Top flourish decorative wings */}
+                  <div className="flex items-center justify-center gap-2 mb-1.5">
+                    <span className="h-[1px] w-6 sm:w-10 bg-gradient-to-r from-transparent to-[#f4e4a6]/80" />
+                    <span className="text-[#f4e4a6] text-[10px] sm:text-xs tracking-[0.25em] uppercase font-bold drop-shadow">
+                      ✦ Royal Invitation ✦
                     </span>
-                    {language === 'ur' ? 'کھولنے کے لیے دبائیں' : language === 'hi' ? 'खोलने के लिए दबाएं' : 'Tap to open'}
-                  </p>
+                    <span className="h-[1px] w-6 sm:w-10 bg-gradient-to-l from-transparent to-[#f4e4a6]/80" />
+                  </div>
+
+                  {/* Main Calligraphic Designed "You're Invited" */}
+                  <div className="relative py-1 px-4 my-1">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#d4af37]/25 to-transparent blur-sm rounded-full pointer-events-none" />
+
+                    <h1
+                      className={`relative text-4xl sm:text-5xl md:text-6xl tracking-wide select-none ${
+                        language === 'ur'
+                          ? 'font-urdu text-[#fffef0] leading-relaxed drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]'
+                          : language === 'hi'
+                          ? 'font-hindi font-extrabold text-[#fffef0] drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]'
+                          : 'font-script text-transparent bg-clip-text bg-gradient-to-b from-[#ffffff] via-[#fff8dc] to-[#f4e4a6] drop-shadow-[0_4px_16px_rgba(212,175,55,0.7)]'
+                      }`}
+                    >
+                      {language === 'ur' ? 'آپ صمیمِ قلب سے مدعو ہیں' : language === 'hi' ? 'सादर आमंत्रण' : "You're Invited"}
+                    </h1>
+                  </div>
+                  <div className="mt-2.5 flex items-center justify-center">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-[#f4e4a6]/40 shadow-[0_4px_15px_rgba(0,0,0,0.4)]">
+                      <span className="w-3.5 h-3.5 rounded-full border border-[#f4e4a6] flex items-center justify-center animate-tapPulse shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#f4e4a6]" />
+                      </span>
+                      <span
+                        className={`text-[10px] sm:text-xs tracking-[0.2em] uppercase font-bold text-[#f4e4a6] drop-shadow ${
+                          language === 'hi' ? 'font-hindi' : 'font-display'
+                        }`}
+                      >
+                        {language === 'ur' ? 'کھولنے کے لیے گیٹ کو چھوئیں' : language === 'hi' ? 'खोलने के लिए गेट छुएं' : 'Tap Door to Enter'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
               </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Calendar, Clock, MapPin, Images } from 'lucide-react';
+import { Calendar, Clock, MapPin, Images, ExternalLink } from 'lucide-react';
 import { Language } from '../types';
 import { BaraatVideoPlayer } from './BaraatVideoPlayer';
 import { WaveDivider } from './WaveDivider';
@@ -13,6 +13,16 @@ interface BaraatCeremonySectionProps {
   locationEn?: string;
   locationUr?: string;
   locationHi?: string;
+  addressEn?: string;
+  addressUr?: string;
+  addressHi?: string;
+  dateEn?: string;
+  dateUr?: string;
+  dateHi?: string;
+  timeEn?: string;
+  timeUr?: string;
+  timeHi?: string;
+  mapUrl?: string;
 }
 
 export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
@@ -21,7 +31,17 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
   onVideoChange,
   locationEn,
   locationUr,
-  locationHi
+  locationHi,
+  addressEn,
+  addressUr,
+  addressHi,
+  dateEn,
+  dateUr,
+  dateHi,
+  timeEn,
+  timeUr,
+  timeHi,
+  mapUrl
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
@@ -225,7 +245,7 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
       id="baraat-ceremony"
       className="relative w-full min-h-screen py-20 px-4 flex flex-col items-center justify-center overflow-hidden cursor-default select-none"
       style={{
-        background: 'radial-gradient(ellipse at 50% 30%, #ffffff 0%, #fff5f6 40%, #ffedf0 75%, #ffe4e6 100%)'
+        background: 'radial-gradient(ellipse at 50% 25%, #fff1f2 0%, #ffe4e6 25%, #fecdd3 58%, #fda4af 85%, #fb7185 100%)'
       }}
     >
       {/* 1. Interactive Royal Baraat Canvas */}
@@ -254,11 +274,11 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
       </div>
 
       {/* 3. Main Royal Baraat Card */}
-      <div className="relative z-10 max-w-lg w-full mx-auto bg-white/40 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-[0_12px_32px_rgba(190,18,60,0.08)] border border-white/80 text-center transition-all duration-300">
+      <div className="relative z-10 max-w-lg w-full mx-auto bg-rose-50/90 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-[0_16px_40px_rgba(244,63,94,0.18)] border-2 border-rose-300/80 text-center transition-all duration-300">
         
         {/* Top Header Row with Ceremony Badge on Left and Gallery Icon Button on Right */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600/15 border border-rose-400/30 text-rose-950 text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600/20 border border-rose-400/50 text-rose-950 text-xs font-bold">
             <span>👑</span>
             <span>{language === 'ur' ? 'آمدِ بارات' : language === 'hi' ? 'शाही बारात' : 'Royal Baraat'}</span>
           </div>
@@ -266,7 +286,7 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
           <button
             type="button"
             onClick={() => setIsGalleryOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md border border-rose-300/70 bg-white/90 hover:bg-white text-rose-950"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md border border-rose-300 bg-white/95 hover:bg-white text-rose-950"
             title={language === 'ur' ? 'بارات تصویری گیلری' : language === 'hi' ? 'बारात फोटो गैलरी' : 'Baraat Ceremony Photos'}
           >
             <Images className="w-3.5 h-3.5 text-rose-600" />
@@ -307,7 +327,7 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
         {/* Date & Time and Location Key Highlights */}
         <div className="max-w-md mx-auto mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
           {/* 1. Date & Time */}
-          <div className="p-2.5 rounded-2xl bg-white/25 backdrop-blur-[2px] border border-white/60 shadow-xs flex items-center gap-2.5">
+          <div className="p-2.5 rounded-2xl bg-white/75 backdrop-blur-xs border border-rose-200/90 shadow-2xs flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-rose-700 text-white flex items-center justify-center shrink-0 shadow-sm">
               <Calendar className="w-4 h-4" />
             </div>
@@ -317,27 +337,27 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
               </span>
               <p className="text-xs sm:text-sm font-extrabold text-rose-950 mt-0.5 truncate">
                 {language === 'ur'
-                  ? '۲۸ اکتوبر ۲۰۲۶'
+                  ? (dateUr || '۲۸ اکتوبر ۲۰۲۶')
                   : language === 'hi'
-                  ? '28 अक्टूबर 2026'
-                  : 'Oct 28, 2026'}
+                  ? (dateHi || '28 अक्टूबर 2026')
+                  : (dateEn || 'Oct 28, 2026')}
               </p>
               <div className="flex items-center gap-1 text-[11px] text-rose-950 font-bold mt-0.5">
                 <Clock className="w-3 h-3 text-rose-700 shrink-0" />
                 <span>
                   {language === 'ur'
-                    ? 'شام ۵:۳۰ بجے'
+                    ? (timeUr || 'شام ۵:۳۰ بجے')
                     : language === 'hi'
-                    ? 'शाम 5:30 बजे'
-                    : '5:30 PM'}
+                    ? (timeHi || 'शाम 5:30 बजे')
+                    : (timeEn || '5:30 PM')}
                 </span>
               </div>
             </div>
           </div>
 
           {/* 2. Location (لوکیشن / स्थान) */}
-          <div className="p-2.5 rounded-2xl bg-white/25 backdrop-blur-[2px] border border-white/60 shadow-xs flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-rose-800 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <div className="p-2.5 rounded-2xl bg-white/75 backdrop-blur-xs border border-rose-200/90 shadow-2xs flex items-start gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-rose-800 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
               <MapPin className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
@@ -346,21 +366,39 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
               </span>
               <p className={`text-xs sm:text-sm font-extrabold text-rose-950 mt-0.5 leading-tight ${language === 'hi' ? 'font-hindi' : ''}`}>
                 {language === 'ur'
-                  ? (locationUr || 'برج العرب گرینڈ گیٹ، دبئی')
+                  ? (locationUr || 'برج العرب شاہی مین گیٹ')
                   : language === 'hi'
-                  ? (locationHi || 'बुर्ज अल अरब ग्रैंड गेट, दुबई')
-                  : (locationEn || 'Burj Al Arab Grand Entrance, Dubai')}
+                  ? (locationHi || 'बुर्ज अल अरब ग्रैंड एंट्रेंस गेट')
+                  : (locationEn || 'Burj Al Arab Grand Entrance Gate')}
               </p>
-              <span className="inline-block text-[10px] text-rose-800 font-semibold mt-0.5">
-                📍 {language === 'ur' ? 'دبئی، متحدہ عرب امارات' : language === 'hi' ? 'दुबई, यूएई' : 'Dubai, UAE'}
-              </span>
+              <p className="text-[10px] text-rose-950/80 font-medium mt-0.5 leading-snug">
+                {language === 'ur'
+                  ? (addressUr || 'ام سقیم ۳، دبئی، متحدہ عرب امارات')
+                  : language === 'hi'
+                  ? (addressHi || 'उम्म सुक़ीम 3, दुबई, यूएई')
+                  : (addressEn || 'Umm Suqeim 3, Dubai, UAE')}
+              </p>
+              {mapUrl && (
+                <a
+                  href={mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-rose-950 bg-rose-200/90 hover:bg-rose-300 px-2 py-0.5 rounded-full transition-all active:scale-95 shadow-2xs"
+                >
+                  <MapPin className="w-2.5 h-2.5" />
+                  <span>
+                    {language === 'ur' ? 'گوگل میپ پر دیکھیں' : language === 'hi' ? 'गूगल मैप पर देखें' : 'View on Map'}
+                  </span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                </a>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Bottom organic wave transition into Nikah section */}
-      <WaveDivider position="bottom" fillColor="#f7fdf9" variant="wave2" />
+      <WaveDivider position="bottom" fillColor="#f0fdfa" variant="wave2" />
 
       {/* Dedicated Ceremony Photo Gallery Modal */}
       <CeremonyGalleryModal

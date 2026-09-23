@@ -30,7 +30,7 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
       ? data.brideNameHi || data.brideNameEn
       : data.brideNameEn;
 
-  const renderMember = (member: FamilyMember) => {
+  const renderMember = (member: FamilyMember, side: 'groom' | 'bride') => {
     const name =
       language === 'ur'
         ? member.nameUr
@@ -45,25 +45,69 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
         ? member.relationHi || member.relationEn
         : member.relationEn;
 
+    const isGroom = side === 'groom';
+
     return (
       <div
         key={member.id}
-        className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-white/70 hover:bg-white/95 border border-amber-200/50 shadow-2xs transition-all duration-200 group"
+        className={`flex items-center justify-between gap-3 py-2 px-3 rounded-2xl bg-white/85 hover:bg-white border transition-all duration-200 group shadow-xs hover:shadow-md ${
+          isGroom 
+            ? 'border-amber-200/60 hover:border-amber-300' 
+            : 'border-rose-200/60 hover:border-rose-300'
+        }`}
       >
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 group-hover:scale-125 transition-transform" />
-          <span
-            className={`text-xs sm:text-sm font-bold text-gray-900 truncate ${
-              language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : ''
-            }`}
-          >
-            {name}
-          </span>
+        {/* Avatar/Photo strictly placed BEFORE the name text in left-to-right order */}
+        <div className="flex items-center gap-3 min-w-0" dir="ltr">
+          {/* Member Photo Avatar / Badge */}
+          {member.imageUrl ? (
+            <div className={`relative w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 border-2 shadow-xs group-hover:scale-105 transition-transform duration-200 ${
+              isGroom ? 'border-amber-400 ring-2 ring-amber-200/60' : 'border-rose-400 ring-2 ring-rose-200/60'
+            }`}>
+              <img
+                src={member.imageUrl}
+                alt={member.nameEn || 'Family Member'}
+                className="w-full h-full object-cover object-top"
+                loading="lazy"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+            </div>
+          ) : (
+            <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full shrink-0 border-2 flex items-center justify-center font-bold text-xs shadow-xs ${
+              isGroom 
+                ? 'bg-gradient-to-tr from-amber-100 via-amber-50 to-amber-200 text-amber-900 border-amber-300/90' 
+                : 'bg-gradient-to-tr from-rose-100 via-rose-50 to-rose-200 text-rose-900 border-rose-300/90'
+            }`}>
+              {name.charAt(0) || (isGroom ? 'Q' : 'K')}
+            </div>
+          )}
+
+          {/* Member Name and Sub-relation text placed after image */}
+          <div className="min-w-0 text-left" dir={language === 'ur' ? 'rtl' : 'ltr'}>
+            <span
+              className={`text-xs sm:text-sm font-bold text-gray-900 truncate block leading-tight ${
+                language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : ''
+              }`}
+            >
+              {name}
+            </span>
+            <span
+              className={`text-[10px] sm:text-[11px] font-medium text-gray-500 block truncate ${
+                language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : ''
+              }`}
+            >
+              {relation}
+            </span>
+          </div>
         </div>
+
         <span
-          className={`text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100/80 text-amber-900 shrink-0 border border-amber-300/40 ${
-            language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : ''
-          }`}
+          className={`text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 border uppercase tracking-wider ${
+            isGroom
+              ? 'bg-amber-100/80 text-amber-900 border-amber-300/50'
+              : 'bg-rose-100/80 text-rose-900 border-rose-300/50'
+          } ${language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : ''}`}
         >
           {relation}
         </span>
@@ -127,9 +171,24 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
           <div>
             {/* Groom Side Header */}
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-amber-200/60">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🤵</span>
-                <div>
+              <div className="flex items-center gap-3 min-w-0" dir="ltr">
+                {groomFamily.badgeImageUrl ? (
+                  <div className="relative w-12 h-12 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md shrink-0 bg-amber-50">
+                    <img
+                      src={groomFamily.badgeImageUrl}
+                      alt="Groom Family Logo"
+                      className="w-full h-full object-cover object-top"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center text-xl shadow-xs border border-amber-300 shrink-0">
+                    <span>🤵</span>
+                  </div>
+                )}
+                <div className="min-w-0 text-left" dir={language === 'ur' ? 'rtl' : 'ltr'}>
                   <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-800 block">
                     {language === 'ur'
                       ? groomFamily.sideTitleUr
@@ -137,12 +196,12 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
                       ? groomFamily.sideTitleHi || groomFamily.sideTitleEn
                       : groomFamily.sideTitleEn}
                   </span>
-                  <h4 className="text-lg sm:text-xl font-extrabold text-[#1a3a4d]">
+                  <h4 className="text-lg sm:text-xl font-extrabold text-[#1a3a4d] truncate">
                     {groomName}
                   </h4>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-extrabold uppercase">
+              <span className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-extrabold uppercase shrink-0">
                 {language === 'ur' ? 'دولہا' : language === 'hi' ? 'दूल्हा' : 'Groom'}
               </span>
             </div>
@@ -162,7 +221,7 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
 
             {/* Family Members List */}
             <div className="space-y-2">
-              {groomFamily.members.map(renderMember)}
+              {groomFamily.members.map((member) => renderMember(member, 'groom'))}
             </div>
           </div>
         </div>
@@ -172,9 +231,24 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
           <div>
             {/* Bride Side Header */}
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-rose-200/60">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">👰</span>
-                <div>
+              <div className="flex items-center gap-3 min-w-0" dir="ltr">
+                {brideFamily.badgeImageUrl ? (
+                  <div className="relative w-12 h-12 rounded-2xl overflow-hidden border-2 border-rose-400 shadow-md shrink-0 bg-rose-50">
+                    <img
+                      src={brideFamily.badgeImageUrl}
+                      alt="Bride Family Logo"
+                      className="w-full h-full object-cover object-top"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-400 to-rose-200 flex items-center justify-center text-xl shadow-xs border border-rose-300 shrink-0">
+                    <span>👰</span>
+                  </div>
+                )}
+                <div className="min-w-0 text-left" dir={language === 'ur' ? 'rtl' : 'ltr'}>
                   <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-rose-800 block">
                     {language === 'ur'
                       ? brideFamily.sideTitleUr
@@ -182,12 +256,12 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
                       ? brideFamily.sideTitleHi || brideFamily.sideTitleEn
                       : brideFamily.sideTitleEn}
                   </span>
-                  <h4 className="text-lg sm:text-xl font-extrabold text-[#1a3a4d]">
+                  <h4 className="text-lg sm:text-xl font-extrabold text-[#1a3a4d] truncate">
                     {brideName}
                   </h4>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-900 text-[10px] font-extrabold uppercase">
+              <span className="px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-900 text-[10px] font-extrabold uppercase shrink-0">
                 {language === 'ur' ? 'دلہن' : language === 'hi' ? 'दुल्हन' : 'Bride'}
               </span>
             </div>
@@ -207,7 +281,7 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
 
             {/* Family Members List */}
             <div className="space-y-2">
-              {brideFamily.members.map(renderMember)}
+              {brideFamily.members.map((member) => renderMember(member, 'bride'))}
             </div>
           </div>
         </div>

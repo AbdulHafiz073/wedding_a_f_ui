@@ -42,6 +42,7 @@ export interface FamilyMember {
   relationEn: string;
   relationUr: string;
   relationHi?: string;
+  imageUrl?: string;
 }
 
 export interface FamilySide {
@@ -51,6 +52,7 @@ export interface FamilySide {
   parentsIntroEn?: string;
   parentsIntroUr?: string;
   parentsIntroHi?: string;
+  badgeImageUrl?: string; // Logo / emblem / portrait image for the Family Side header (replacing 🤵 or 👰)
   members: FamilyMember[];
 }
 
@@ -104,17 +106,74 @@ export interface WeddingData {
   haldiLocationEn?: string;
   haldiLocationUr?: string;
   haldiLocationHi?: string;
+  haldiAddressEn?: string;
+  haldiAddressUr?: string;
+  haldiAddressHi?: string;
+  haldiDateEn?: string;
+  haldiDateUr?: string;
+  haldiDateHi?: string;
+  haldiTimeEn?: string;
+  haldiTimeUr?: string;
+  haldiTimeHi?: string;
+  haldiMapUrl?: string;
+
   mehndiLocationEn?: string;
   mehndiLocationUr?: string;
   mehndiLocationHi?: string;
+  mehndiAddressEn?: string;
+  mehndiAddressUr?: string;
+  mehndiAddressHi?: string;
+  mehndiDateEn?: string;
+  mehndiDateUr?: string;
+  mehndiDateHi?: string;
+  mehndiTimeEn?: string;
+  mehndiTimeUr?: string;
+  mehndiTimeHi?: string;
+  mehndiMapUrl?: string;
+
   baraatLocationEn?: string;
   baraatLocationUr?: string;
   baraatLocationHi?: string;
+  baraatAddressEn?: string;
+  baraatAddressUr?: string;
+  baraatAddressHi?: string;
+  baraatDateEn?: string;
+  baraatDateUr?: string;
+  baraatDateHi?: string;
+  baraatTimeEn?: string;
+  baraatTimeUr?: string;
+  baraatTimeHi?: string;
+  baraatMapUrl?: string;
+
   nikahLocationEn?: string;
   nikahLocationUr?: string;
   nikahLocationHi?: string;
+  nikahAddressEn?: string;
+  nikahAddressUr?: string;
+  nikahAddressHi?: string;
+  nikahDateEn?: string;
+  nikahDateUr?: string;
+  nikahDateHi?: string;
+  nikahTimeEn?: string;
+  nikahTimeUr?: string;
+  nikahTimeHi?: string;
+  nikahMapUrl?: string;
+
   rukhsatiLocationEn?: string;
   rukhsatiLocationUr?: string;
   rukhsatiLocationHi?: string;
+  rukhsatiAddressEn?: string;
+  rukhsatiAddressUr?: string;
+  rukhsatiAddressHi?: string;
+  rukhsatiDateEn?: string;
+  rukhsatiDateUr?: string;
+  rukhsatiDateHi?: string;
+  rukhsatiTimeEn?: string;
+  rukhsatiTimeUr?: string;
+  rukhsatiTimeHi?: string;
+  rukhsatiMapUrl?: string;
+  scratchSurpriseMessageEn?: string;
+  scratchSurpriseMessageUr?: string;
+  scratchSurpriseMessageHi?: string;
   adminPin?: string;
 }

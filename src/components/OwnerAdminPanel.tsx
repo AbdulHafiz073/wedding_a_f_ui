@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
   Check, 
@@ -26,7 +26,9 @@ import {
   Upload,
   FolderOpen,
   Image as ImageIcon,
-  DoorOpen
+  DoorOpen,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { WeddingData, Language, FamilyMember, RsvpData } from '../types';
 import { subscribeToCloudRsvps, saveWeddingDataToCloud } from '../lib/firebase';
@@ -78,8 +80,38 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
   // Form state
   const [formData, setFormData] = useState<WeddingData>({ ...data });
   const [activeTab, setActiveTab] = useState<AdminTab>('names');
+  const [ceremonyBoxFilter, setCeremonyBoxFilter] = useState<'all' | 'haldi' | 'mehndi' | 'baraat' | 'nikah' | 'rukhsati' | 'main'>('all');
   const [newPinInput, setNewPinInput] = useState('');
   const [pinChangeSuccess, setPinChangeSuccess] = useState(false);
+  const [showHelperPin, setShowHelperPin] = useState(false);
+  const [showNewPin, setShowNewPin] = useState(false);
+
+  // Tabs Slider ref & scroll state for mobile and small screens
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkTabsScroll = () => {
+    if (tabsContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsContainerRef.current;
+      setCanScrollLeft(scrollLeft > 4);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+    }
+  };
+
+  useEffect(() => {
+    checkTabsScroll();
+    window.addEventListener('resize', checkTabsScroll);
+    return () => window.removeEventListener('resize', checkTabsScroll);
+  }, [isOpen, isAuthenticated]);
+
+  const slideTabs = (direction: 'left' | 'right') => {
+    if (tabsContainerRef.current) {
+      const offset = direction === 'left' ? -180 : 180;
+      tabsContainerRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+      setTimeout(checkTabsScroll, 250);
+    }
+  };
 
   // RSVPs State
   const [rsvps, setRsvps] = useState<RsvpData[]>([]);
@@ -439,12 +471,25 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               )}
             </div>
 
-            {/* Quick Helper */}
+            {/* Security PIN Protection & Discretion */}
             <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 rounded-xl p-3 text-[11px] text-gray-300 flex items-center justify-between">
-              <span>Default Owner PIN:</span>
-              <span className="font-mono font-bold text-[#ffeaa7] bg-black/40 px-2.5 py-0.5 rounded border border-[#d4af37]/40">
-                {currentAdminPin}
+              <span className="flex items-center gap-1.5 text-gray-300">
+                <Lock className="w-3.5 h-3.5 text-[#d4af37]" />
+                Owner PIN Protected:
               </span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-bold text-[#ffeaa7] bg-black/50 px-2.5 py-0.5 rounded border border-[#d4af37]/40">
+                  {showHelperPin ? currentAdminPin : '••••'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowHelperPin(!showHelperPin)}
+                  className="text-[10px] text-[#ffeaa7] hover:text-white underline cursor-pointer"
+                  title={showHelperPin ? 'Hide default password' : 'Show default password'}
+                >
+                  {showHelperPin ? 'Hide' : 'Reveal'}
+                </button>
+              </div>
             </div>
 
             <button
@@ -539,91 +584,135 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
           </div>
         )}
 
-        {/* Navigation Tabs Bar */}
-        <div className="flex items-center gap-1 p-2 bg-[#090f19] border-b border-white/10 overflow-x-auto scrollbar-none">
-          <button
-            onClick={() => setActiveTab('names')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'names'
-                ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            1. Names & Couple
-          </button>
+        {/* Navigation Tabs Bar with Mobile Slider Controls */}
+        <div className="relative bg-[#090f19] border-b border-white/10 select-none">
+          {/* Left Arrow Slide Button (Visible when scrolled) */}
+          {canScrollLeft && (
+            <button
+              type="button"
+              onClick={() => slideTabs('left')}
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[#1e293b]/95 hover:bg-[#d4af37] text-white hover:text-black border border-white/20 shadow-lg flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs"
+              aria-label="Slide tabs left"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
 
-          <button
-            onClick={() => setActiveTab('videos')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'videos'
-                ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <DoorOpen className="w-3.5 h-3.5 text-amber-300" />
-            2. 🚪 Gate & Side Photos (گیٹ اور دونوں سائیڈ کی تصاویر)
-          </button>
+          {/* Right Arrow Slide Button (Visible when can scroll right) */}
+          {canScrollRight && (
+            <button
+              type="button"
+              onClick={() => slideTabs('right')}
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[#1e293b]/95 hover:bg-[#d4af37] text-white hover:text-black border border-white/20 shadow-lg flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs"
+              aria-label="Slide tabs right"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
 
-          <button
-            onClick={() => setActiveTab('family')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'family'
-                ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
+          {/* Left / Right Gradient Fade cues for smooth slider look */}
+          <div
+            className={`pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#090f19] to-transparent z-5 transition-opacity ${
+              canScrollLeft ? 'opacity-100' : 'opacity-0'
             }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            3. Family Members (اہلِ خانہ)
-          </button>
+          />
+          <div
+            className={`pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#090f19] to-transparent z-5 transition-opacity ${
+              canScrollRight ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
 
-          <button
-            onClick={() => setActiveTab('datetime')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'datetime'
-                ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
-            }`}
+          {/* Scrollable Tabs Slider Container */}
+          <div
+            ref={tabsContainerRef}
+            onScroll={checkTabsScroll}
+            className="flex items-center gap-1.5 p-2 px-3 overflow-x-auto no-scrollbar scroll-smooth"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            <Calendar className="w-3.5 h-3.5" />
-            4. Date & Countdown
-          </button>
+            <button
+              onClick={() => setActiveTab('names')}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeTab === 'names'
+                  ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              1. Names & Couple
+            </button>
 
-          <button
-            onClick={() => setActiveTab('location')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'location'
-                ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <MapPin className="w-3.5 h-3.5" />
-            5. Venue & Maps
-          </button>
+            <button
+              onClick={() => setActiveTab('videos')}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeTab === 'videos'
+                  ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <DoorOpen className="w-3.5 h-3.5 text-amber-300" />
+              2. 🚪 Gate & Side Photos (گیٹ اور دونوں سائیڈ کی تصاویر)
+            </button>
 
-          <button
-            onClick={() => setActiveTab('rsvps')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'rsvps'
-                ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <HeartHandshake className="w-3.5 h-3.5" />
-            6. Guest RSVPs ({totalRsvpCount})
-          </button>
+            <button
+              onClick={() => setActiveTab('family')}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeTab === 'family'
+                  ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              3. Family Members (اہلِ خانہ)
+            </button>
 
-          <button
-            onClick={() => setActiveTab('security')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'security'
-                ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <KeyRound className="w-3.5 h-3.5" />
-            7. Owner PIN
-          </button>
+            <button
+              onClick={() => setActiveTab('datetime')}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeTab === 'datetime'
+                  ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              4. Date & Countdown
+            </button>
+
+            <button
+              onClick={() => setActiveTab('location')}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeTab === 'location'
+                  ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              5. Venue & Maps
+            </button>
+
+            <button
+              onClick={() => setActiveTab('rsvps')}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeTab === 'rsvps'
+                  ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <HeartHandshake className="w-3.5 h-3.5" />
+              6. Guest RSVPs ({totalRsvpCount})
+            </button>
+
+            <button
+              onClick={() => setActiveTab('security')}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeTab === 'security'
+                  ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              7. Owner PIN
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Form Body */}
@@ -731,6 +820,32 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                       value={formData.welcomeMessageUr}
                       onChange={(e) => setFormData({ ...formData, welcomeMessageUr: e.target.value })}
                       className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu outline-none focus:border-[#d4af37]"
+                    />
+                  </div>
+
+                  <div className="pt-2 border-t border-white/10">
+                    <label className="block text-xs text-amber-300 font-bold mb-1">
+                      🪙 Scratch Reveal Secret Surprise Message (English)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formData.scratchSurpriseMessageEn || ''}
+                      onChange={(e) => setFormData({ ...formData, scratchSurpriseMessageEn: e.target.value })}
+                      placeholder="Special secret invitation blessing shown after scratch reveal..."
+                      className="w-full px-3 py-2 bg-[#090f19] border border-amber-400/30 rounded-xl text-white outline-none focus:border-[#d4af37]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-amber-300 font-bold mb-1">
+                      🪙 سکریچ ریویل کا خفیہ پیغام و خاص دعا (اردو)
+                    </label>
+                    <textarea
+                      rows={2}
+                      dir="rtl"
+                      value={formData.scratchSurpriseMessageUr || ''}
+                      onChange={(e) => setFormData({ ...formData, scratchSurpriseMessageUr: e.target.value })}
+                      placeholder="سونے کا سکہ کھرچنے کے بعد ظاہر ہونے والی خصوصی دعا یا پیغام..."
+                      className="w-full px-3 py-2 bg-[#090f19] border border-amber-400/30 rounded-xl text-white font-urdu outline-none focus:border-[#d4af37]"
                     />
                   </div>
                 </div>
@@ -1340,10 +1455,82 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                   </h3>
                   <button
                     onClick={() => handleAddMember('groom')}
-                    className="px-3 py-1.5 bg-[#d4af37] hover:bg-[#e5c158] text-[#0f172a] text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 bg-[#d4af37] hover:bg-[#e5c158] text-[#0f172a] text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer shadow-xs"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Member
                   </button>
+                </div>
+
+                {/* Groom Family Badge / Logo Image */}
+                <div className="p-3 bg-[#090f19] border border-amber-500/20 rounded-xl mb-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-[#d4af37]" />
+                      Groom's Family Badge / Logo / Icon Image
+                    </label>
+                    {formData.groomFamily.badgeImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          groomFamily: { ...formData.groomFamily, badgeImageUrl: undefined }
+                        })}
+                        className="text-[10px] text-red-400 hover:text-red-300"
+                      >
+                        Reset to 🤵 icon
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {formData.groomFamily.badgeImageUrl ? (
+                      <img
+                        src={formData.groomFamily.badgeImageUrl}
+                        alt="Groom Family Logo"
+                        className="w-12 h-12 rounded-xl object-cover border-2 border-amber-400 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-amber-400/20 border border-amber-400/50 flex items-center justify-center text-xl shrink-0">
+                        🤵
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-1.5">
+                      <input
+                        type="text"
+                        placeholder="Paste image / logo URL or use Upload"
+                        value={formData.groomFamily.badgeImageUrl || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          groomFamily: { ...formData.groomFamily, badgeImageUrl: e.target.value }
+                        })}
+                        className="w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-lg text-white text-xs outline-none focus:border-[#d4af37]"
+                      />
+                      <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-medium cursor-pointer border border-white/20 transition-all">
+                        <Upload className="w-3 h-3 text-[#d4af37]" />
+                        <span>Upload Family Logo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const compressed = await compressImageFile(file);
+                                setFormData(prev => ({
+                                  ...prev,
+                                  groomFamily: { ...prev.groomFamily, badgeImageUrl: compressed }
+                                }));
+                                setSaveSuccessMsg('Groom Family logo uploaded! Click Save to apply.');
+                                setTimeout(() => setSaveSuccessMsg(null), 3500);
+                              } catch (err) {
+                                console.error(err);
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mb-4">
@@ -1361,32 +1548,76 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
 
                 <div className="space-y-3">
                   {formData.groomFamily.members.map((member) => (
-                    <div key={member.id} className="p-3 bg-[#090f19] border border-white/10 rounded-xl grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
-                      <div className="sm:col-span-2">
+                    <div key={member.id} className="p-3 bg-[#090f19] border border-white/10 rounded-xl space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
+                        <div className="sm:col-span-2">
+                          <input
+                            type="text"
+                            placeholder="Name (English)"
+                            value={member.nameEn}
+                            onChange={(e) => handleMemberChange('groom', member.id, 'nameEn', e.target.value)}
+                            className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-lg text-white text-xs"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <input
+                            type="text"
+                            placeholder="Relation (e.g. Elder Brother)"
+                            value={member.relationEn}
+                            onChange={(e) => handleMemberChange('groom', member.id, 'relationEn', e.target.value)}
+                            className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-lg text-white text-xs"
+                          />
+                        </div>
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => handleRemoveMember('groom', member.id)}
+                            className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Member Photo Controls */}
+                      <div className="pt-2 border-t border-white/5 flex items-center gap-2">
+                        {member.imageUrl ? (
+                          <img
+                            src={member.imageUrl}
+                            alt={member.nameEn || 'Member'}
+                            className="w-8 h-8 rounded-full object-cover border border-amber-400 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-gray-400 shrink-0">
+                            👤
+                          </div>
+                        )}
                         <input
                           type="text"
-                          placeholder="Name (English)"
-                          value={member.nameEn}
-                          onChange={(e) => handleMemberChange('groom', member.id, 'nameEn', e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-lg text-white text-xs"
+                          placeholder="Member Photo URL (optional)"
+                          value={member.imageUrl || ''}
+                          onChange={(e) => handleMemberChange('groom', member.id, 'imageUrl', e.target.value)}
+                          className="flex-1 px-2 py-1 bg-black/30 border border-white/10 rounded-lg text-white text-[11px]"
                         />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <input
-                          type="text"
-                          placeholder="Relation (e.g. Elder Brother)"
-                          value={member.relationEn}
-                          onChange={(e) => handleMemberChange('groom', member.id, 'relationEn', e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-lg text-white text-xs"
-                        />
-                      </div>
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => handleRemoveMember('groom', member.id)}
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <label className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-[10px] font-medium cursor-pointer border border-white/20 shrink-0 flex items-center gap-1">
+                          <Upload className="w-2.5 h-2.5 text-[#d4af37]" />
+                          <span>Photo</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const compressed = await compressImageFile(file);
+                                  handleMemberChange('groom', member.id, 'imageUrl', compressed);
+                                } catch (err) {
+                                  console.error(err);
+                                }
+                              }
+                            }}
+                          />
+                        </label>
                       </div>
                     </div>
                   ))}
@@ -1402,10 +1633,82 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                   </h3>
                   <button
                     onClick={() => handleAddMember('bride')}
-                    className="px-3 py-1.5 bg-[#d4af37] hover:bg-[#e5c158] text-[#0f172a] text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 bg-[#d4af37] hover:bg-[#e5c158] text-[#0f172a] text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer shadow-xs"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Member
                   </button>
+                </div>
+
+                {/* Bride Family Badge / Logo Image */}
+                <div className="p-3 bg-[#090f19] border border-rose-500/20 rounded-xl mb-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-rose-300 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-rose-400" />
+                      Bride's Family Badge / Logo / Icon Image
+                    </label>
+                    {formData.brideFamily.badgeImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          brideFamily: { ...formData.brideFamily, badgeImageUrl: undefined }
+                        })}
+                        className="text-[10px] text-red-400 hover:text-red-300"
+                      >
+                        Reset to 👰 icon
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {formData.brideFamily.badgeImageUrl ? (
+                      <img
+                        src={formData.brideFamily.badgeImageUrl}
+                        alt="Bride Family Logo"
+                        className="w-12 h-12 rounded-xl object-cover border-2 border-rose-400 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-rose-400/20 border border-rose-400/50 flex items-center justify-center text-xl shrink-0">
+                        👰
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-1.5">
+                      <input
+                        type="text"
+                        placeholder="Paste image / logo URL or use Upload"
+                        value={formData.brideFamily.badgeImageUrl || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          brideFamily: { ...formData.brideFamily, badgeImageUrl: e.target.value }
+                        })}
+                        className="w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-lg text-white text-xs outline-none focus:border-rose-400"
+                      />
+                      <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-medium cursor-pointer border border-white/20 transition-all">
+                        <Upload className="w-3 h-3 text-rose-400" />
+                        <span>Upload Family Logo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const compressed = await compressImageFile(file);
+                                setFormData(prev => ({
+                                  ...prev,
+                                  brideFamily: { ...prev.brideFamily, badgeImageUrl: compressed }
+                                }));
+                                setSaveSuccessMsg('Bride Family logo uploaded! Click Save to apply.');
+                                setTimeout(() => setSaveSuccessMsg(null), 3500);
+                              } catch (err) {
+                                console.error(err);
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mb-4">
@@ -1423,32 +1726,76 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
 
                 <div className="space-y-3">
                   {formData.brideFamily.members.map((member) => (
-                    <div key={member.id} className="p-3 bg-[#090f19] border border-white/10 rounded-xl grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
-                      <div className="sm:col-span-2">
+                    <div key={member.id} className="p-3 bg-[#090f19] border border-white/10 rounded-xl space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
+                        <div className="sm:col-span-2">
+                          <input
+                            type="text"
+                            placeholder="Name (English)"
+                            value={member.nameEn}
+                            onChange={(e) => handleMemberChange('bride', member.id, 'nameEn', e.target.value)}
+                            className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-lg text-white text-xs"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <input
+                            type="text"
+                            placeholder="Relation (e.g. Sister)"
+                            value={member.relationEn}
+                            onChange={(e) => handleMemberChange('bride', member.id, 'relationEn', e.target.value)}
+                            className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-lg text-white text-xs"
+                          />
+                        </div>
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => handleRemoveMember('bride', member.id)}
+                            className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Member Photo Controls */}
+                      <div className="pt-2 border-t border-white/5 flex items-center gap-2">
+                        {member.imageUrl ? (
+                          <img
+                            src={member.imageUrl}
+                            alt={member.nameEn || 'Member'}
+                            className="w-8 h-8 rounded-full object-cover border border-rose-400 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-gray-400 shrink-0">
+                            👤
+                          </div>
+                        )}
                         <input
                           type="text"
-                          placeholder="Name (English)"
-                          value={member.nameEn}
-                          onChange={(e) => handleMemberChange('bride', member.id, 'nameEn', e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-lg text-white text-xs"
+                          placeholder="Member Photo URL (optional)"
+                          value={member.imageUrl || ''}
+                          onChange={(e) => handleMemberChange('bride', member.id, 'imageUrl', e.target.value)}
+                          className="flex-1 px-2 py-1 bg-black/30 border border-white/10 rounded-lg text-white text-[11px]"
                         />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <input
-                          type="text"
-                          placeholder="Relation (e.g. Sister)"
-                          value={member.relationEn}
-                          onChange={(e) => handleMemberChange('bride', member.id, 'relationEn', e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-lg text-white text-xs"
-                        />
-                      </div>
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => handleRemoveMember('bride', member.id)}
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <label className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-[10px] font-medium cursor-pointer border border-white/20 shrink-0 flex items-center gap-1">
+                          <Upload className="w-2.5 h-2.5 text-rose-400" />
+                          <span>Photo</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const compressed = await compressImageFile(file);
+                                  handleMemberChange('bride', member.id, 'imageUrl', compressed);
+                                } catch (err) {
+                                  console.error(err);
+                                }
+                              }
+                            }}
+                          />
+                        </label>
                       </div>
                     </div>
                   ))}
@@ -1507,182 +1854,944 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
           )}
 
           {/* ======================================================== */}
-          {/* TAB 5: VENUE & GOOGLE MAPS */}
+          {/* TAB 5: VENUE & CEREMONY CARDS (EACH BOX IN ITS OWN SECTION) */}
           {/* ======================================================== */}
           {activeTab === 'location' && (
-            <div className="space-y-5">
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5">
-                <h3 className="text-base font-bold text-[#ffeaa7] mb-3 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#d4af37]" />
-                  Venue Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-300 mb-1">Venue Name (English)</label>
+            <div className="space-y-6">
+              {/* Introduction Banner with Box Selector Chips */}
+              <div className="bg-gradient-to-r from-[#1e293b] to-[#0f172a] border border-[#d4af37]/40 rounded-2xl p-4 sm:p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-base font-bold text-[#ffeaa7] flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-[#d4af37]" />
+                      Ceremony Locations & Cards (ہر کارڈ کا الگ سیکشن)
+                    </h3>
+                    <p className="text-xs text-gray-300 mt-1">
+                      ہر تقریب کے کارڈ کا اپنا الگ مقام، پتہ، تاریخ، وقت اور گوگل میپ لنک ہے۔ آپ نیچے کسی بھی باکس کو الگ سے ایڈٹ کر سکتے ہیں۔
+                    </p>
+                  </div>
+                  <span className="text-[11px] bg-[#d4af37]/20 text-[#ffeaa7] border border-[#d4af37]/40 px-3 py-1 rounded-full font-bold self-start sm:self-auto shrink-0">
+                    6 Dedicated Sections
+                  </span>
+                </div>
+
+                {/* Sub-filter / Jump-to chips */}
+                <div className="flex items-center gap-1.5 mt-4 overflow-x-auto no-scrollbar pb-1">
+                  <button
+                    type="button"
+                    onClick={() => setCeremonyBoxFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                      ceremonyBoxFilter === 'all'
+                        ? 'bg-[#d4af37] text-gray-950 shadow-md'
+                        : 'bg-white/10 text-gray-300 hover:text-white hover:bg-white/15'
+                    }`}
+                  >
+                    ✦ All Sections (سبھی)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCeremonyBoxFilter('haldi')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                      ceremonyBoxFilter === 'haldi'
+                        ? 'bg-amber-500 text-gray-950 shadow-md'
+                        : 'bg-white/10 text-amber-300 hover:bg-white/15'
+                    }`}
+                  >
+                    <span>🌼</span> Haldi Box
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCeremonyBoxFilter('mehndi')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                      ceremonyBoxFilter === 'mehndi'
+                        ? 'bg-emerald-500 text-gray-950 shadow-md'
+                        : 'bg-white/10 text-emerald-300 hover:bg-white/15'
+                    }`}
+                  >
+                    <span>🌿</span> Mehndi Box
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCeremonyBoxFilter('baraat')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                      ceremonyBoxFilter === 'baraat'
+                        ? 'bg-rose-500 text-white shadow-md'
+                        : 'bg-white/10 text-rose-300 hover:bg-white/15'
+                    }`}
+                  >
+                    <span>🎺</span> Baraat Box
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCeremonyBoxFilter('nikah')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                      ceremonyBoxFilter === 'nikah'
+                        ? 'bg-teal-500 text-gray-950 shadow-md'
+                        : 'bg-white/10 text-teal-300 hover:bg-white/15'
+                    }`}
+                  >
+                    <span>💍</span> Nikah Box
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCeremonyBoxFilter('rukhsati')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                      ceremonyBoxFilter === 'rukhsati'
+                        ? 'bg-pink-500 text-white shadow-md'
+                        : 'bg-white/10 text-pink-300 hover:bg-white/15'
+                    }`}
+                  >
+                    <span>✨</span> Rukhsati Box
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCeremonyBoxFilter('main')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                      ceremonyBoxFilter === 'main'
+                        ? 'bg-[#ffeaa7] text-gray-950 shadow-md'
+                        : 'bg-white/10 text-[#ffeaa7] hover:bg-white/15'
+                    }`}
+                  >
+                    <span>🏛️</span> Main Venue & Hall
+                  </button>
+                </div>
+              </div>
+
+              {/* ========================================================= */}
+              {/* SECTION 1: HALDI CEREMONY BOX (ہلدی کارڈ باکس) */}
+              {/* ========================================================= */}
+              {(ceremonyBoxFilter === 'all' || ceremonyBoxFilter === 'haldi') && (
+                <div className="bg-gradient-to-b from-amber-950/30 to-amber-900/10 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-amber-500/30 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center font-bold text-lg">
+                        🌼
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-amber-300 flex items-center gap-2">
+                          1. Haldi Ceremony Box (ہلدی کارڈ سیکشن)
+                        </h4>
+                        <p className="text-[11px] text-gray-300">
+                          Dedicated location, address, date & Google Map link for Haldi card
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30">
+                      Haldi Box
+                    </span>
+                  </div>
+
+                  {/* 1. Venue / Hall Name */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-amber-200">
+                      Haldi Location / Hall Name (ہلدی کا مقام / ہال)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <input
                         type="text"
-                        value={formData.venueNameEn}
+                        placeholder="English (e.g. Royal Sunlit Courtyard, Dubai)"
+                        value={formData.haldiLocationEn || ''}
+                        onChange={(e) => setFormData({ ...formData, haldiLocationEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-amber-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو (مثلاً سن لِٹ رائل کورٹ یارڈ، دبئی)"
+                        value={formData.haldiLocationUr || ''}
+                        onChange={(e) => setFormData({ ...formData, haldiLocationUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-amber-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी (जैसे: सन लिट रॉयल कोर्टयार्ड, दुबई)"
+                        value={formData.haldiLocationHi || ''}
+                        onChange={(e) => setFormData({ ...formData, haldiLocationHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. Street / Area Address */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-amber-200">
+                      Haldi Specific Address (ہلدی کا مکمل پتہ)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English Address"
+                        value={formData.haldiAddressEn || ''}
+                        onChange={(e) => setFormData({ ...formData, haldiAddressEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-amber-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو پتہ"
+                        value={formData.haldiAddressUr || ''}
+                        onChange={(e) => setFormData({ ...formData, haldiAddressUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-amber-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी पता"
+                        value={formData.haldiAddressHi || ''}
+                        onChange={(e) => setFormData({ ...formData, haldiAddressHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. Date & Time Strings */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-amber-200">Haldi Date (تاریخ)</label>
+                      <input
+                        type="text"
+                        placeholder="English Date (e.g. Oct 26, 2026)"
+                        value={formData.haldiDateEn || ''}
+                        onChange={(e) => setFormData({ ...formData, haldiDateEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-amber-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-amber-200">Haldi Time (وقت)</label>
+                      <input
+                        type="text"
+                        placeholder="English Time (e.g. 10:30 AM)"
+                        value={formData.haldiTimeEn || ''}
+                        onChange={(e) => setFormData({ ...formData, haldiTimeEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Google Maps Link */}
+                  <div className="space-y-1 pt-1">
+                    <label className="block text-xs font-bold text-amber-200 flex items-center justify-between">
+                      <span>Haldi Google Maps Direct Link</span>
+                      {formData.haldiMapUrl && (
+                        <a
+                          href={formData.haldiMapUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-amber-400 hover:underline flex items-center gap-1"
+                        >
+                          Test Link ↗
+                        </a>
+                      )}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://maps.google.com/?q=..."
+                      value={formData.haldiMapUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, haldiMapUrl: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* SECTION 2: MEHNDI CEREMONY BOX (مہندی کارڈ باکس) */}
+              {/* ========================================================= */}
+              {(ceremonyBoxFilter === 'all' || ceremonyBoxFilter === 'mehndi') && (
+                <div className="bg-gradient-to-b from-emerald-950/30 to-emerald-900/10 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-emerald-500/30 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-bold text-lg">
+                        🌿
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-emerald-300 flex items-center gap-2">
+                          2. Mehndi Night Box (مہندی کارڈ سیکشن)
+                        </h4>
+                        <p className="text-[11px] text-gray-300">
+                          Dedicated location, address, date & Google Map link for Mehndi card
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                      Mehndi Box
+                    </span>
+                  </div>
+
+                  {/* 1. Venue / Hall Name */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-emerald-200">
+                      Mehndi Location / Hall Name (مہندی کا مقام / ہال)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English (e.g. The Royal Palm Garden, Dubai)"
+                        value={formData.mehndiLocationEn || ''}
+                        onChange={(e) => setFormData({ ...formData, mehndiLocationEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-emerald-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو (مثلاً دی رائل پام گارڈن، دبئی)"
+                        value={formData.mehndiLocationUr || ''}
+                        onChange={(e) => setFormData({ ...formData, mehndiLocationUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-emerald-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी (जैसे: द रॉयल पाम गार्डन, दुबई)"
+                        value={formData.mehndiLocationHi || ''}
+                        onChange={(e) => setFormData({ ...formData, mehndiLocationHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-emerald-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. Street / Area Address */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-emerald-200">
+                      Mehndi Specific Address (مہندی کا مکمل پتہ)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English Address"
+                        value={formData.mehndiAddressEn || ''}
+                        onChange={(e) => setFormData({ ...formData, mehndiAddressEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-emerald-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو پتہ"
+                        value={formData.mehndiAddressUr || ''}
+                        onChange={(e) => setFormData({ ...formData, mehndiAddressUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-emerald-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी पता"
+                        value={formData.mehndiAddressHi || ''}
+                        onChange={(e) => setFormData({ ...formData, mehndiAddressHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-emerald-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. Date & Time Strings */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-emerald-200">Mehndi Date (تاریخ)</label>
+                      <input
+                        type="text"
+                        placeholder="English Date (e.g. Oct 27, 2026)"
+                        value={formData.mehndiDateEn || ''}
+                        onChange={(e) => setFormData({ ...formData, mehndiDateEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-emerald-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-emerald-200">Mehndi Time (وقت)</label>
+                      <input
+                        type="text"
+                        placeholder="English Time (e.g. 7:00 PM)"
+                        value={formData.mehndiTimeEn || ''}
+                        onChange={(e) => setFormData({ ...formData, mehndiTimeEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-emerald-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Google Maps Link */}
+                  <div className="space-y-1 pt-1">
+                    <label className="block text-xs font-bold text-emerald-200 flex items-center justify-between">
+                      <span>Mehndi Google Maps Direct Link</span>
+                      {formData.mehndiMapUrl && (
+                        <a
+                          href={formData.mehndiMapUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-emerald-400 hover:underline flex items-center gap-1"
+                        >
+                          Test Link ↗
+                        </a>
+                      )}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://maps.google.com/?q=..."
+                      value={formData.mehndiMapUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, mehndiMapUrl: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-emerald-400"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* SECTION 3: BARAAT CEREMONY BOX (بارات کارڈ باکس) */}
+              {/* ========================================================= */}
+              {(ceremonyBoxFilter === 'all' || ceremonyBoxFilter === 'baraat') && (
+                <div className="bg-gradient-to-b from-rose-950/30 to-rose-900/10 border-2 border-rose-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-rose-500/30 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 flex items-center justify-center font-bold text-lg">
+                        🎺
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-rose-300 flex items-center gap-2">
+                          3. Baraat Procession Box (بارات کارڈ سیکشن)
+                        </h4>
+                        <p className="text-[11px] text-gray-300">
+                          Dedicated departure location, assembly point, date & Google Map link for Baraat card
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full border border-rose-500/30">
+                      Baraat Box
+                    </span>
+                  </div>
+
+                  {/* 1. Venue / Hall Name */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-rose-200">
+                      Baraat Location / Departure Point (بارات کی روانگی کا مقام)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English (e.g. Burj Al Arab Grand Concourse, Dubai)"
+                        value={formData.baraatLocationEn || ''}
+                        onChange={(e) => setFormData({ ...formData, baraatLocationEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-rose-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو (مثلاً برج العرب گرینڈ کنکورس، دبئی)"
+                        value={formData.baraatLocationUr || ''}
+                        onChange={(e) => setFormData({ ...formData, baraatLocationUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-rose-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी (जैसे: बुर्ज अल अरब ग्रैंड कॉन्कोर्स, दुबई)"
+                        value={formData.baraatLocationHi || ''}
+                        onChange={(e) => setFormData({ ...formData, baraatLocationHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-rose-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. Street / Area Address */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-rose-200">
+                      Baraat Specific Address (بارات کا مکمل پتہ)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English Address"
+                        value={formData.baraatAddressEn || ''}
+                        onChange={(e) => setFormData({ ...formData, baraatAddressEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-rose-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو پتہ"
+                        value={formData.baraatAddressUr || ''}
+                        onChange={(e) => setFormData({ ...formData, baraatAddressUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-rose-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी पता"
+                        value={formData.baraatAddressHi || ''}
+                        onChange={(e) => setFormData({ ...formData, baraatAddressHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-rose-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. Date & Time Strings */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-rose-200">Baraat Date (تاریخ)</label>
+                      <input
+                        type="text"
+                        placeholder="English Date (e.g. Oct 28, 2026)"
+                        value={formData.baraatDateEn || ''}
+                        onChange={(e) => setFormData({ ...formData, baraatDateEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-rose-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-rose-200">Baraat Time (وقت)</label>
+                      <input
+                        type="text"
+                        placeholder="English Time (e.g. 5:30 PM)"
+                        value={formData.baraatTimeEn || ''}
+                        onChange={(e) => setFormData({ ...formData, baraatTimeEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-rose-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Google Maps Link */}
+                  <div className="space-y-1 pt-1">
+                    <label className="block text-xs font-bold text-rose-200 flex items-center justify-between">
+                      <span>Baraat Google Maps Direct Link</span>
+                      {formData.baraatMapUrl && (
+                        <a
+                          href={formData.baraatMapUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-rose-400 hover:underline flex items-center gap-1"
+                        >
+                          Test Link ↗
+                        </a>
+                      )}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://maps.google.com/?q=..."
+                      value={formData.baraatMapUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, baraatMapUrl: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-rose-400"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* SECTION 4: NIKAH CEREMONY BOX (نکاح کارڈ باکس) */}
+              {/* ========================================================= */}
+              {(ceremonyBoxFilter === 'all' || ceremonyBoxFilter === 'nikah') && (
+                <div className="bg-gradient-to-b from-teal-950/30 to-teal-900/10 border-2 border-teal-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-teal-500/30 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-500/40 text-teal-300 flex items-center justify-center font-bold text-lg">
+                        💍
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-teal-300 flex items-center gap-2">
+                          4. Sacred Nikah Box (نکاح کارڈ سیکشن)
+                        </h4>
+                        <p className="text-[11px] text-gray-300">
+                          Dedicated venue hall, address, date & Google Map link for Sacred Nikah card
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 px-2.5 py-1 rounded-full border border-teal-500/30">
+                      Nikah Box
+                    </span>
+                  </div>
+
+                  {/* 1. Venue / Hall Name */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-teal-200">
+                      Nikah Location / Hall Name (نکاح کا مقام / بال روم)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English (e.g. Al Falak Grand Ballroom, Burj Al Arab, Dubai)"
+                        value={formData.nikahLocationEn || ''}
+                        onChange={(e) => setFormData({ ...formData, nikahLocationEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-teal-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو (مثلاً الفلک گرینڈ بال روم، برج العرب، دبئی)"
+                        value={formData.nikahLocationUr || ''}
+                        onChange={(e) => setFormData({ ...formData, nikahLocationUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-teal-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी (जैसे: अल फलक ग्रैंड बॉलरूम, बुर्ज अल अरब, दुबई)"
+                        value={formData.nikahLocationHi || ''}
+                        onChange={(e) => setFormData({ ...formData, nikahLocationHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-teal-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. Street / Area Address */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-teal-200">
+                      Nikah Specific Address (نکاح کا مکمل پتہ)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English Address"
+                        value={formData.nikahAddressEn || ''}
+                        onChange={(e) => setFormData({ ...formData, nikahAddressEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-teal-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو پتہ"
+                        value={formData.nikahAddressUr || ''}
+                        onChange={(e) => setFormData({ ...formData, nikahAddressUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-teal-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी पता"
+                        value={formData.nikahAddressHi || ''}
+                        onChange={(e) => setFormData({ ...formData, nikahAddressHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-teal-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. Date & Time Strings */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-teal-200">Nikah Date (تاریخ)</label>
+                      <input
+                        type="text"
+                        placeholder="English Date (e.g. Oct 28, 2026)"
+                        value={formData.nikahDateEn || ''}
+                        onChange={(e) => setFormData({ ...formData, nikahDateEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-teal-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-teal-200">Nikah Time (وقت)</label>
+                      <input
+                        type="text"
+                        placeholder="English Time (e.g. 7:30 PM)"
+                        value={formData.nikahTimeEn || ''}
+                        onChange={(e) => setFormData({ ...formData, nikahTimeEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-teal-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Google Maps Link */}
+                  <div className="space-y-1 pt-1">
+                    <label className="block text-xs font-bold text-teal-200 flex items-center justify-between">
+                      <span>Nikah Google Maps Direct Link</span>
+                      {formData.nikahMapUrl && (
+                        <a
+                          href={formData.nikahMapUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-teal-400 hover:underline flex items-center gap-1"
+                        >
+                          Test Link ↗
+                        </a>
+                      )}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://maps.google.com/?q=..."
+                      value={formData.nikahMapUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, nikahMapUrl: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-teal-400"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* SECTION 5: RUKHSATI CEREMONY BOX (رخصتی کارڈ باکس) */}
+              {/* ========================================================= */}
+              {(ceremonyBoxFilter === 'all' || ceremonyBoxFilter === 'rukhsati') && (
+                <div className="bg-gradient-to-b from-pink-950/30 to-pink-900/10 border-2 border-pink-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-pink-500/30 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-pink-500/20 border border-pink-500/40 text-pink-300 flex items-center justify-center font-bold text-lg">
+                        ✨
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-pink-300 flex items-center gap-2">
+                          5. Emotional Rukhsati Box (رخصتی کارڈ سیکشن)
+                        </h4>
+                        <p className="text-[11px] text-gray-300">
+                          Dedicated portico/lounge, address, date & Google Map link for Rukhsati card
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-pink-500/20 text-pink-300 px-2.5 py-1 rounded-full border border-pink-500/30">
+                      Rukhsati Box
+                    </span>
+                  </div>
+
+                  {/* 1. Venue / Hall Name */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-pink-200">
+                      Rukhsati Location / Hall Name (رخصتی کا مقام / لاؤنج)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English (e.g. Burj Al Arab Portico & Lobby Lounge, Dubai)"
+                        value={formData.rukhsatiLocationEn || ''}
+                        onChange={(e) => setFormData({ ...formData, rukhsatiLocationEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-pink-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو (مثلاً برج العرب پورٹیکو اینڈ لابی لاؤنج، دبئی)"
+                        value={formData.rukhsatiLocationUr || ''}
+                        onChange={(e) => setFormData({ ...formData, rukhsatiLocationUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-pink-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी (जैसे: बुर्ज अल अरब पोर्टिको एंड लॉबी लाउंज, दुबई)"
+                        value={formData.rukhsatiLocationHi || ''}
+                        onChange={(e) => setFormData({ ...formData, rukhsatiLocationHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-pink-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. Street / Area Address */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-pink-200">
+                      Rukhsati Specific Address (رخصتی کا مکمل پتہ)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English Address"
+                        value={formData.rukhsatiAddressEn || ''}
+                        onChange={(e) => setFormData({ ...formData, rukhsatiAddressEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-pink-400"
+                      />
+                      <input
+                        type="text"
+                        dir="rtl"
+                        placeholder="اردو پتہ"
+                        value={formData.rukhsatiAddressUr || ''}
+                        onChange={(e) => setFormData({ ...formData, rukhsatiAddressUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-pink-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी पता"
+                        value={formData.rukhsatiAddressHi || ''}
+                        onChange={(e) => setFormData({ ...formData, rukhsatiAddressHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-pink-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. Date & Time Strings */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-pink-200">Rukhsati Date (تاریخ)</label>
+                      <input
+                        type="text"
+                        placeholder="English Date (e.g. Oct 28, 2026)"
+                        value={formData.rukhsatiDateEn || ''}
+                        onChange={(e) => setFormData({ ...formData, rukhsatiDateEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-pink-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-pink-200">Rukhsati Time (وقت)</label>
+                      <input
+                        type="text"
+                        placeholder="English Time (e.g. 9:00 PM)"
+                        value={formData.rukhsatiTimeEn || ''}
+                        onChange={(e) => setFormData({ ...formData, rukhsatiTimeEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-pink-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Google Maps Link */}
+                  <div className="space-y-1 pt-1">
+                    <label className="block text-xs font-bold text-pink-200 flex items-center justify-between">
+                      <span>Rukhsati Google Maps Direct Link</span>
+                      {formData.rukhsatiMapUrl && (
+                        <a
+                          href={formData.rukhsatiMapUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-pink-400 hover:underline flex items-center gap-1"
+                        >
+                          Test Link ↗
+                        </a>
+                      )}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://maps.google.com/?q=..."
+                      value={formData.rukhsatiMapUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, rukhsatiMapUrl: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-pink-400"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* SECTION 6: MAIN WEDDING VENUE & RECEPTION (مرکزی شادی ہال اور استقبالیہ) */}
+              {/* ========================================================= */}
+              {(ceremonyBoxFilter === 'all' || ceremonyBoxFilter === 'main') && (
+                <div className="bg-gradient-to-b from-[#1a3a4d]/40 to-[#0e212d]/20 border-2 border-[#d4af37]/60 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
+                  <div className="flex items-center justify-between border-b border-[#d4af37]/40 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#ffeaa7] flex items-center justify-center font-bold text-lg">
+                        🏛️
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-[#ffeaa7] flex items-center gap-2">
+                          6. Main Venue, Hall & Reception (مرکزی شادی ہال اور استقبالیہ)
+                        </h4>
+                        <p className="text-[11px] text-gray-300">
+                          Primary venue information shown in the bottom Timeline & Venue Map section
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#d4af37]/20 text-[#ffeaa7] px-2.5 py-1 rounded-full border border-[#d4af37]/40">
+                      Main Reception
+                    </span>
+                  </div>
+
+                  {/* 1. Venue Name */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-[#ffeaa7]">
+                      Main Venue Name (مرکزی شادی ہال کا نام)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        placeholder="English (e.g. Burj Al Arab)"
+                        value={formData.venueNameEn || ''}
                         onChange={(e) => setFormData({ ...formData, venueNameEn: e.target.value })}
                         className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-300 mb-1">Venue Name (اردو)</label>
                       <input
                         type="text"
                         dir="rtl"
-                        value={formData.venueNameUr}
+                        placeholder="اردو (مثلاً برج العرب)"
+                        value={formData.venueNameUr || ''}
                         onChange={(e) => setFormData({ ...formData, venueNameUr: e.target.value })}
                         className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
                       />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-gray-300 mb-1">Full Address</label>
-                    <input
-                      type="text"
-                      value={formData.venueAddressEn}
-                      onChange={(e) => setFormData({ ...formData, venueAddressEn: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-gray-300 mb-1">Google Maps Direct Link (for Guests)</label>
-                    <input
-                      type="text"
-                      value={formData.mapDirectionsUrl}
-                      onChange={(e) => setFormData({ ...formData, mapDirectionsUrl: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Ceremony Specific Locations */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-4">
-                <h3 className="text-base font-bold text-[#ffeaa7] flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#d4af37]" />
-                  Ceremony Locations (ہر رسم کا مقام)
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Customize the specific venue/location displayed on each ceremony card.
-                </p>
-
-                <div className="space-y-3">
-                  {/* Haldi */}
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-2">
-                    <span className="text-xs font-bold text-amber-400">🌼 Haldi Ceremony Location</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
                         type="text"
-                        placeholder="English: Family Courtyard, Dubai"
-                        value={formData.haldiLocationEn || ''}
-                        onChange={(e) => setFormData({ ...formData, haldiLocationEn: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white text-xs outline-none focus:border-[#d4af37]"
-                      />
-                      <input
-                        type="text"
-                        dir="rtl"
-                        placeholder="اردو: فیملی کورٹ یارڈ، دبئی"
-                        value={formData.haldiLocationUr || ''}
-                        onChange={(e) => setFormData({ ...formData, haldiLocationUr: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
+                        placeholder="हिन्दी (जैसे: बुर्ज अल अरब)"
+                        value={formData.venueNameHi || ''}
+                        onChange={(e) => setFormData({ ...formData, venueNameHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-[#d4af37]"
                       />
                     </div>
                   </div>
 
-                  {/* Mehndi */}
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-2">
-                    <span className="text-xs font-bold text-emerald-400">🌿 Mehndi Night Location</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {/* 2. City */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-[#ffeaa7]">
+                      City / Emirate (شہر کا نام)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <input
                         type="text"
-                        placeholder="English: The Palm Garden, Dubai"
-                        value={formData.mehndiLocationEn || ''}
-                        onChange={(e) => setFormData({ ...formData, mehndiLocationEn: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white text-xs outline-none focus:border-[#d4af37]"
+                        placeholder="English City (Dubai, UAE)"
+                        value={formData.venueCityEn || ''}
+                        onChange={(e) => setFormData({ ...formData, venueCityEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
                       />
                       <input
                         type="text"
                         dir="rtl"
-                        placeholder="اردو: دی پام گارڈن، دبئی"
-                        value={formData.mehndiLocationUr || ''}
-                        onChange={(e) => setFormData({ ...formData, mehndiLocationUr: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
+                        placeholder="اردو شہر (دبئی، متحدہ عرب امارات)"
+                        value={formData.venueCityUr || ''}
+                        onChange={(e) => setFormData({ ...formData, venueCityUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी शहर (दुबई, यूएई)"
+                        value={formData.venueCityHi || ''}
+                        onChange={(e) => setFormData({ ...formData, venueCityHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-[#d4af37]"
                       />
                     </div>
                   </div>
 
-                  {/* Baraat */}
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-2">
-                    <span className="text-xs font-bold text-rose-400">🎺 Baraat Procession Location</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {/* 3. Full Address */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-[#ffeaa7]">
+                      Main Venue Full Address (مرکزی وینیو کا تفصیلی پتہ)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <input
                         type="text"
-                        placeholder="English: Burj Al Arab Grand Entrance, Dubai"
-                        value={formData.baraatLocationEn || ''}
-                        onChange={(e) => setFormData({ ...formData, baraatLocationEn: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white text-xs outline-none focus:border-[#d4af37]"
+                        placeholder="English Address"
+                        value={formData.venueAddressEn || ''}
+                        onChange={(e) => setFormData({ ...formData, venueAddressEn: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
                       />
                       <input
                         type="text"
                         dir="rtl"
-                        placeholder="اردو: برج العرب گرینڈ گیٹ، دبئی"
-                        value={formData.baraatLocationUr || ''}
-                        onChange={(e) => setFormData({ ...formData, baraatLocationUr: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
+                        placeholder="اردو پتہ"
+                        value={formData.venueAddressUr || ''}
+                        onChange={(e) => setFormData({ ...formData, venueAddressUr: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
+                      />
+                      <input
+                        type="text"
+                        placeholder="हिन्दी पता"
+                        value={formData.venueAddressHi || ''}
+                        onChange={(e) => setFormData({ ...formData, venueAddressHi: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-hindi text-xs outline-none focus:border-[#d4af37]"
                       />
                     </div>
                   </div>
 
-                  {/* Nikah */}
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-2">
-                    <span className="text-xs font-bold text-teal-400">💍 Sacred Nikah Location</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {/* 4. Google Maps Links */}
+                  <div className="space-y-3 pt-1">
+                    <div>
+                      <label className="block text-xs font-bold text-[#ffeaa7] mb-1 flex items-center justify-between">
+                        <span>Google Maps Direct Link (for Guests Button)</span>
+                        {formData.mapDirectionsUrl && (
+                          <a
+                            href={formData.mapDirectionsUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-[#ffeaa7] hover:underline flex items-center gap-1"
+                          >
+                            Test Link ↗
+                          </a>
+                        )}
+                      </label>
                       <input
-                        type="text"
-                        placeholder="English: Burj Al Arab Grand Ballroom, Dubai"
-                        value={formData.nikahLocationEn || ''}
-                        onChange={(e) => setFormData({ ...formData, nikahLocationEn: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white text-xs outline-none focus:border-[#d4af37]"
-                      />
-                      <input
-                        type="text"
-                        dir="rtl"
-                        placeholder="اردو: برج العرب گرینڈ بال روم، دبئی"
-                        value={formData.nikahLocationUr || ''}
-                        onChange={(e) => setFormData({ ...formData, nikahLocationUr: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
+                        type="url"
+                        value={formData.mapDirectionsUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, mapDirectionsUrl: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
                       />
                     </div>
-                  </div>
 
-                  {/* Rukhsati */}
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-2">
-                    <span className="text-xs font-bold text-pink-400">✨ Emotional Rukhsati Location</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-300 mb-1">
+                        Google Maps Embed URL (for In-page Map Preview Iframe)
+                      </label>
                       <input
                         type="text"
-                        placeholder="English: Burj Al Arab Portico, Dubai"
-                        value={formData.rukhsatiLocationEn || ''}
-                        onChange={(e) => setFormData({ ...formData, rukhsatiLocationEn: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white text-xs outline-none focus:border-[#d4af37]"
-                      />
-                      <input
-                        type="text"
-                        dir="rtl"
-                        placeholder="اردو: برج العرب پورٹیکو، دبئی"
-                        value={formData.rukhsatiLocationUr || ''}
-                        onChange={(e) => setFormData({ ...formData, rukhsatiLocationUr: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#090f19] border border-white/20 rounded-lg text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
+                        value={formData.mapEmbedUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, mapEmbedUrl: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
                       />
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -1768,13 +2877,23 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                 <form onSubmit={handleChangePin} className="space-y-3 max-w-sm">
                   <div>
                     <label className="block text-xs text-gray-300 mb-1">New Secret PIN (4 to 8 characters)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 9821 or your secret code"
-                      value={newPinInput}
-                      onChange={(e) => setNewPinInput(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-sm outline-none focus:border-[#d4af37]"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showNewPin ? 'text' : 'password'}
+                        placeholder="e.g. 9821 or your secret code"
+                        value={newPinInput}
+                        onChange={(e) => setNewPinInput(e.target.value)}
+                        className="w-full px-3 py-2 pr-10 bg-[#090f19] border border-white/20 rounded-xl text-white text-sm outline-none focus:border-[#d4af37]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPin(!showNewPin)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1"
+                        title={showNewPin ? 'Hide PIN' : 'Show PIN'}
+                      >
+                        {showNewPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   <button
