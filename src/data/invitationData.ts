@@ -391,6 +391,7 @@ export const defaultWeddingData: WeddingData = {
   scratchSurpriseMessageUr: 'آپ کو ہمارے بابرکت نکاح کی پرمسرت تقریب میں دل کی اتھاہ گہرائیوں سے دعوت دی جاتی ہے۔ آپ کی دعائیں ہمارے لیے انمول تحفہ ہیں! 🤍',
   scratchSurpriseMessageHi: 'आप हमारे मुबारक़ निकाह के पवित्र अवसर पर सादर आमंत्रित हैं। आपकी नेक दुआएं ही हमारे लिए सबसे अनमोल तोहफ़ा हैं! 🤍',
   weddingCardImageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&auto=format&fit=crop&q=85',
+  mamaKiShadiMessage: 'Mere Mama Ki shadi me Jroor Jaroor Ana :- Daniyal ,Hammad Raza, Tasmiya, Anam, Aslihan, Zunera',
   customFaviconUrl: '/favicon.svg',
   adminPin: '7860'
 };

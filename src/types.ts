@@ -176,6 +176,7 @@ export interface WeddingData {
   scratchSurpriseMessageUr?: string;
   scratchSurpriseMessageHi?: string;
   weddingCardImageUrl?: string; // Image of the royal wedding card for guest downloads to gallery
+  mamaKiShadiMessage?: string; // Special kids invitation card line (e.g. Mere Mama Ki shadi me Jroor Jaroor Ana...)
   customFaviconUrl?: string;
   adminPin?: string;
 }

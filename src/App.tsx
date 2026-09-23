@@ -216,6 +216,7 @@ export default function App() {
             if (cloudData.mapEmbedUrl) merged.mapEmbedUrl = cloudData.mapEmbedUrl;
             if (cloudData.mapDirectionsUrl) merged.mapDirectionsUrl = cloudData.mapDirectionsUrl;
             if (cloudData.weddingCardImageUrl) merged.weddingCardImageUrl = cloudData.weddingCardImageUrl;
+            if (cloudData.mamaKiShadiMessage) merged.mamaKiShadiMessage = cloudData.mamaKiShadiMessage;
             try {
               localStorage.setItem('wedding_invitation_data', JSON.stringify(merged));
             } catch {
@@ -922,6 +923,45 @@ export default function App() {
           <p className="font-display text-lg font-bold text-[#b89125] tracking-wide">
             {groomDisplayName} &amp; {brideDisplayName}
           </p>
+
+          {/* Traditional Card Special Request: Mere Mama Ki shadi me Jroor Jaroor Ana */}
+          <div className="my-5 mx-auto max-w-lg px-4 py-3.5 rounded-2xl bg-gradient-to-r from-amber-50/95 via-white/95 to-amber-50/95 border-2 border-[#d4af37]/70 shadow-[0_6px_25px_rgba(212,175,55,0.22)] relative overflow-hidden">
+            {/* Top decorative badge */}
+            <div className="flex items-center justify-center gap-1.5 mb-1.5">
+              <span className="text-amber-500 text-xs">✨</span>
+              <span className={`text-[11px] font-bold tracking-widest text-[#8c6d1f] uppercase ${language === 'hi' ? 'font-hindi' : ''}`}>
+                {language === 'ur' ? 'معصومانہ التماس' : language === 'hi' ? 'प्यारा सा न्योता' : 'Special Kids Request'}
+              </span>
+              <span className="text-amber-500 text-xs">✨</span>
+            </div>
+
+            {/* Main Catchy Line */}
+            <p className={`text-base sm:text-lg font-bold text-[#b89125] leading-snug ${language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : 'font-display'}`}>
+              {language === 'ur'
+                ? 'میرے ماموں کی شادی میں ضرور ضرور آنا'
+                : language === 'hi'
+                ? 'मेरे मामा की शादी में ज़रूर ज़रूर आना'
+                : 'Mere Mama Ki shadi me Jroor Jaroor Ana'}
+            </p>
+
+            <div className="w-16 h-[1px] bg-[#d4af37]/50 mx-auto my-2" />
+
+            {/* List of lovely children */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xs font-semibold text-[#1a3a4d]">
+              <span className="text-[11px] text-[#777] font-normal mr-0.5">
+                {language === 'ur' ? 'منجانب:' : language === 'hi' ? 'प्यारे बच्चे:' : 'From:'}
+              </span>
+              {['Daniyal', 'Hammad Raza', 'Tasmiya', 'Anam', 'Aslihan', 'Zunera'].map((kidName) => (
+                <span
+                  key={kidName}
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-[#d4af37]/50 text-[#1a3a4d] text-xs font-semibold shadow-xs"
+                >
+                  <span className="text-rose-500 text-[10px]">🌸</span>
+                  <span>{kidName}</span>
+                </span>
+              ))}
+            </div>
+          </div>
 
           {/* Gold wave ornament */}
           <div

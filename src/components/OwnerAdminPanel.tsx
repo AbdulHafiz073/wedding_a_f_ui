@@ -75,7 +75,6 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
   });
   const [enteredPin, setEnteredPin] = useState('');
   const [pinError, setPinError] = useState(false);
-  const [showPin, setShowPin] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<WeddingData>({ ...data });
@@ -83,8 +82,6 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
   const [ceremonyBoxFilter, setCeremonyBoxFilter] = useState<'all' | 'haldi' | 'mehndi' | 'baraat' | 'nikah' | 'rukhsati' | 'main'>('all');
   const [newPinInput, setNewPinInput] = useState('');
   const [pinChangeSuccess, setPinChangeSuccess] = useState(false);
-  const [showHelperPin, setShowHelperPin] = useState(false);
-  const [showNewPin, setShowNewPin] = useState(false);
 
   // Tabs Slider ref & scroll state for mobile and small screens
   const tabsContainerRef = useRef<HTMLDivElement>(null);
@@ -458,25 +455,18 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               </label>
               <div className="relative">
                 <input
-                  type={showPin ? 'text' : 'password'}
+                  type="password"
                   value={enteredPin}
                   onChange={(e) => {
                     setEnteredPin(e.target.value);
                     setPinError(false);
                   }}
-                  placeholder="Enter 4-digit PIN"
+                  placeholder="••••"
                   className={`w-full px-4 py-3 bg-[#0a101d] border ${
                     pinError ? 'border-red-500' : 'border-[#d4af37]/40 focus:border-[#d4af37]'
                   } rounded-xl text-center text-xl tracking-widest font-mono text-white placeholder:text-gray-500 placeholder:tracking-normal placeholder:text-sm outline-none transition-all`}
                   autoFocus
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPin(!showPin)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1"
-                >
-                  {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
 
               {pinError && (
@@ -486,25 +476,15 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               )}
             </div>
 
-            {/* Security PIN Protection & Discretion */}
-            <div className="bg-[#d4af37]/10 border border-[#d4af37]/30 rounded-xl p-3 text-[11px] text-gray-300 flex items-center justify-between">
+            {/* Security PIN Protected Badge (Strictly masked, never exposes password) */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-[11px] text-gray-300 flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-gray-300">
                 <Lock className="w-3.5 h-3.5 text-[#d4af37]" />
-                Owner PIN Protected:
+                Access Protection:
               </span>
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-[#ffeaa7] bg-black/50 px-2.5 py-0.5 rounded border border-[#d4af37]/40">
-                  {showHelperPin ? currentAdminPin : '••••'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowHelperPin(!showHelperPin)}
-                  className="text-[10px] text-[#ffeaa7] hover:text-white underline cursor-pointer"
-                  title={showHelperPin ? 'Hide default password' : 'Show default password'}
-                >
-                  {showHelperPin ? 'Hide' : 'Reveal'}
-                </button>
-              </div>
+              <span className="text-[11px] text-amber-300 font-medium bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                🔒 Strictly PIN Encrypted
+              </span>
             </div>
 
             <button
@@ -1831,6 +1811,37 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                   ))}
                 </div>
               </div>
+
+              {/* Special Kids Invitation Line (Mere Mama Ki Shadi Me Zaroor Zaroor Aana) */}
+              <div className="bg-gradient-to-b from-[#182638] to-[#0e1724] border border-[#d4af37]/50 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm sm:text-base font-bold text-[#ffeaa7] flex items-center gap-2">
+                    <span>🌸</span>
+                    معصومانہ التماس و فرمائش (Mere Mama Ki Shadi Me Zaroor Zaroor Aana)
+                  </h3>
+                  <span className="text-[10px] text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30">
+                    Footer Special Card
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300">
+                  یہ روایتی کارڈ میسج ویب سائٹ کے فوٹر میں خوبصورت گولڈن بارڈر کے ساتھ نظر آتا ہے۔
+                </p>
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">
+                    Special Kids Invitation Line &amp; Kids Names:
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={formData.mamaKiShadiMessage ?? 'Mere Mama Ki shadi me Jroor Jaroor Ana :- Daniyal ,Hammad Raza, Tasmiya, Anam, Aslihan, Zunera'}
+                    onChange={(e) => setFormData({ ...formData, mamaKiShadiMessage: e.target.value })}
+                    placeholder="Mere Mama Ki shadi me Jroor Jaroor Ana :- Daniyal ,Hammad Raza, Tasmiya, Anam, Aslihan, Zunera"
+                    className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37] resize-none"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    تبدیلی کے بعد نیچے <strong>"Save All Changes to Cloud"</strong> ضرور دبائیں۔
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -3037,20 +3048,12 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                     <label className="block text-xs text-gray-300 mb-1">New Secret PIN (4 to 8 characters)</label>
                     <div className="relative">
                       <input
-                        type={showNewPin ? 'text' : 'password'}
-                        placeholder="e.g. 9821 or your secret code"
+                        type="password"
+                        placeholder="••••"
                         value={newPinInput}
                         onChange={(e) => setNewPinInput(e.target.value)}
-                        className="w-full px-3 py-2 pr-10 bg-[#090f19] border border-white/20 rounded-xl text-white text-sm outline-none focus:border-[#d4af37]"
+                        className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-sm outline-none focus:border-[#d4af37]"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPin(!showNewPin)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1"
-                        title={showNewPin ? 'Hide PIN' : 'Show PIN'}
-                      >
-                        {showNewPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
                     </div>
                   </div>
 
