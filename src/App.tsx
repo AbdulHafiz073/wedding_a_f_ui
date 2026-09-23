@@ -21,8 +21,8 @@ import {
   getCloudWeddingData 
 } from './lib/firebase';
 import { OwnerAdminPanel } from './components/OwnerAdminPanel';
-import { ScratchRevealCard } from './components/ScratchRevealCard';
-import { CelestialRainCanvas } from './components/CelestialRainCanvas';
+// import { ScratchRevealCard } from './components/ScratchRevealCard';
+// import { CelestialRainCanvas } from './components/CelestialRainCanvas';
 import { 
   Heart, 
   Share2, 
@@ -35,6 +35,8 @@ import {
   MapPin,
   ChevronDown
 } from 'lucide-react';
+import { ScratchRevealCard } from './components/ScratchReavealCard';
+import { CelestialRainCanvas } from './components/CelestialRainCanvas';
 
 export default function App() {
   const [data, setData] = useState<WeddingData>(() => {
