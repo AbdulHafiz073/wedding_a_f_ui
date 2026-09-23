@@ -244,6 +244,19 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
     }
   };
 
+  const handleWeddingCardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImageFile(file);
+      setFormData(prev => ({ ...prev, weddingCardImageUrl: compressed }));
+      setSaveSuccessMsg('Wedding Card image updated! Click "Save All Changes to Cloud" to make it live for guests.');
+      setTimeout(() => setSaveSuccessMsg(''), 4000);
+    } catch (err) {
+      console.error('Error reading wedding card image file:', err);
+    }
+  };
+
   const handleVideoFilePick = (e: React.ChangeEvent<HTMLInputElement>, fieldKey: keyof WeddingData) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -676,7 +689,7 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
-              4. Date & Countdown
+              4. Date, Countdown & Wedding Card (شادی کا کارڈ)
             </button>
 
             <button
@@ -924,6 +937,21 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
             <div className="space-y-5">
               <div className="p-3 bg-[#d4af37]/10 border border-[#d4af37]/30 rounded-xl text-xs text-gray-200">
                 💡 <strong>Photo & Video options:</strong> You can either <strong>choose directly from your phone/computer gallery</strong> or <strong>paste any YouTube / MP4 video link</strong>. All changes sync dynamically!
+              </div>
+
+              {/* Quick shortcut to Wedding Card Image */}
+              <div className="p-3 bg-gradient-to-r from-[#182638] to-[#122030] border border-[#d4af37]/50 rounded-xl flex items-center justify-between gap-3 text-xs shadow-md">
+                <div className="flex items-center gap-2 text-[#ffeaa7]">
+                  <ImageIcon className="w-4 h-4 text-[#d4af37] shrink-0" />
+                  <span>Looking to update the <strong>Wedding Card Image</strong> (for guests to download to gallery)?</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('datetime')}
+                  className="px-3 py-1.5 rounded-lg bg-[#d4af37] hover:bg-[#ffeaa7] text-[#0f172a] font-bold text-xs transition-all cursor-pointer whitespace-nowrap shadow-sm"
+                >
+                  Manage Wedding Card →
+                </button>
               </div>
 
               {/* ======================================================== */}
@@ -1848,6 +1876,110 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                         onChange={(e) => setFormData({ ...formData, weddingTimeUr: e.target.value })}
                         className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white font-urdu text-xs outline-none focus:border-[#d4af37]"
                       />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ======================================================== */}
+              {/* WEDDING CARD IMAGE FOR GUEST DOWNLOAD (شادی کا کارڈ) */}
+              {/* ======================================================== */}
+              <div className="bg-gradient-to-b from-[#182638] to-[#0e1724] border-2 border-[#d4af37]/60 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#d4af37]/20 pb-3">
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-[#ffeaa7] flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5 text-[#d4af37]" />
+                      شادی کا کارڈ تصویر (Wedding Card Image for Guest Download)
+                    </h3>
+                    <p className="text-xs text-gray-300 mt-0.5">
+                      مہمان جب کاؤنٹ ڈاؤن کے پاس <strong>"Download Wedding Card"</strong> بٹن دبائیں گے تو یہی کارڈ ان کی موبائل گیلری میں سیو ہو جائے گا۔
+                    </p>
+                  </div>
+                  <span className="text-[11px] text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-3 py-1 rounded-full font-medium shrink-0 self-start sm:self-auto">
+                    ✓ Gallery Download Active
+                  </span>
+                </div>
+
+                {/* Card Preview and Upload Options */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                  {/* Current Wedding Card Preview */}
+                  <div className="flex flex-col items-center p-3 rounded-xl bg-black/40 border border-[#d4af37]/40 text-center">
+                    <span className="text-[11px] font-bold text-[#d4af37] mb-2 flex items-center gap-1">
+                      <Eye className="w-3.5 h-3.5" />
+                      موجودہ کارڈ پریویو (Current Card Preview)
+                    </span>
+                    <div className="w-full max-w-[200px] aspect-[3/4] rounded-xl overflow-hidden border-2 border-[#d4af37] shadow-lg bg-black/60 relative group">
+                      <img
+                        src={formData.weddingCardImageUrl || 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&auto=format&fit=crop&q=85'}
+                        alt="Current Wedding Card"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400 mt-2">
+                      {formData.weddingCardImageUrl?.startsWith('data:') ? '📁 Gallery Image Uploaded' : '🔗 Image Link Active'}
+                    </span>
+                  </div>
+
+                  {/* Upload from Gallery & URL inputs */}
+                  <div className="md:col-span-2 space-y-3">
+                    {/* Option A: Choose from Phone / Computer Gallery */}
+                    <label className="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed border-[#d4af37]/70 hover:border-[#d4af37] bg-[#d4af37]/10 hover:bg-[#d4af37]/20 cursor-pointer transition-all text-center group">
+                      <Upload className="w-7 h-7 text-[#d4af37] mb-1 group-hover:scale-110 transition-transform" />
+                      <span className="text-xs sm:text-sm font-bold text-white">📁 Choose Card from Phone / Computer Gallery</span>
+                      <span className="text-xs text-[#ffeaa7] mt-0.5">اپنے موبائل یا کمپیوٹر سے شادی کا اصلی کارڈ لگائیں</span>
+                      <span className="text-[10px] text-gray-400 mt-1">Supports PNG, JPG, WEBP (Auto-optimized for instant guest downloads)</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleWeddingCardUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {/* Option B: Direct Image URL */}
+                    <div className="p-3 rounded-xl bg-[#090f19] border border-white/15">
+                      <label className="text-xs font-semibold text-gray-200 mb-1 flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5 text-[#d4af37]" />
+                        🔗 Or Paste Direct Wedding Card Image URL:
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.weddingCardImageUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, weddingCardImageUrl: e.target.value })}
+                        placeholder="https://example.com/my-wedding-card.jpg"
+                        className="w-full px-3 py-2 bg-[#0d1624] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
+                      />
+                      <p className="text-[10px] text-gray-400 mt-1.5">
+                        💡 Tip: Aap koi bhi Google Drive direct photo, Cloudinary, Imgur ya internet image link paste kar sakte hain. Changes save karne ke baad neeche <strong>"Save All Changes to Cloud"</strong> dabayein.
+                      </p>
+                    </div>
+
+                    {/* Quick Presets */}
+                    <div>
+                      <span className="block text-[11px] font-semibold text-gray-300 mb-1.5">
+                        ✨ Or Pick a Royal Preset Card:
+                      </span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { name: 'Royal Emerald', url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&auto=format&fit=crop&q=85' },
+                          { name: 'Ivory Floral', url: 'https://images.unsplash.com/photo-1607190074257-dd4b7af0309f?w=1200&auto=format&fit=crop&q=85' },
+                          { name: 'Gold Velvet', url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1200&auto=format&fit=crop&q=85' },
+                          { name: 'Classic Gold Ribbon', url: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1200&auto=format&fit=crop&q=85' }
+                        ].map((preset, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, weddingCardImageUrl: preset.url })}
+                            className={`p-2 rounded-xl text-left border text-[11px] transition-all cursor-pointer ${
+                              (formData.weddingCardImageUrl || '').includes(preset.url.split('?')[0])
+                                ? 'bg-[#d4af37]/25 border-[#d4af37] text-white font-bold'
+                                : 'bg-black/30 border-white/10 text-gray-300 hover:border-white/30'
+                            }`}
+                          >
+                            <span className="block truncate">{preset.name}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>

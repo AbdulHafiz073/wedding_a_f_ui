@@ -390,6 +390,7 @@ export const defaultWeddingData: WeddingData = {
   scratchSurpriseMessageEn: 'You are cordially invited to celebrate our Sacred Nikah. Your presence & prayers are our true blessing! 🤍',
   scratchSurpriseMessageUr: 'آپ کو ہمارے بابرکت نکاح کی پرمسرت تقریب میں دل کی اتھاہ گہرائیوں سے دعوت دی جاتی ہے۔ آپ کی دعائیں ہمارے لیے انمول تحفہ ہیں! 🤍',
   scratchSurpriseMessageHi: 'आप हमारे मुबारक़ निकाह के पवित्र अवसर पर सादर आमंत्रित हैं। आपकी नेक दुआएं ही हमारे लिए सबसे अनमोल तोहफ़ा हैं! 🤍',
+  weddingCardImageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&auto=format&fit=crop&q=85',
   customFaviconUrl: '/favicon.svg',
   adminPin: '7860'
 };

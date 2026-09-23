@@ -215,6 +215,7 @@ export default function App() {
             if (cloudData.venueCityHi) merged.venueCityHi = cloudData.venueCityHi;
             if (cloudData.mapEmbedUrl) merged.mapEmbedUrl = cloudData.mapEmbedUrl;
             if (cloudData.mapDirectionsUrl) merged.mapDirectionsUrl = cloudData.mapDirectionsUrl;
+            if (cloudData.weddingCardImageUrl) merged.weddingCardImageUrl = cloudData.weddingCardImageUrl;
             try {
               localStorage.setItem('wedding_invitation_data', JSON.stringify(merged));
             } catch {
@@ -717,6 +718,7 @@ export default function App() {
             brideName={brideDisplayName}
             venueName={language === 'ur' ? data.venueNameUr : language === 'hi' ? (data.venueNameHi || data.venueNameEn) : data.venueNameEn}
             venueCity={language === 'ur' ? data.venueCityUr : language === 'hi' ? (data.venueCityHi || data.venueCityEn) : data.venueCityEn}
+            weddingCardImageUrl={data.weddingCardImageUrl}
           />
 
           {/* Organic Wave Divider transitioning into Scratch Reveal */}

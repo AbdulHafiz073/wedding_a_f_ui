@@ -175,5 +175,7 @@ export interface WeddingData {
   scratchSurpriseMessageEn?: string;
   scratchSurpriseMessageUr?: string;
   scratchSurpriseMessageHi?: string;
+  weddingCardImageUrl?: string; // Image of the royal wedding card for guest downloads to gallery
+  customFaviconUrl?: string;
   adminPin?: string;
 }

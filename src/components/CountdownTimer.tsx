@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Download, Clock } from 'lucide-react';
+import { Calendar, Download, Clock, Image as ImageIcon, Eye, Check, Loader2, X } from 'lucide-react';
 import { Language } from '../types';
-import { generateGoogleCalendarUrl, downloadIcsFile } from '../utils/calendar';
+import { generateGoogleCalendarUrl } from '../utils/calendar';
 
 interface CountdownTimerProps {
   language: Language;
@@ -10,6 +10,7 @@ interface CountdownTimerProps {
   brideName: string;
   venueName: string;
   venueCity: string;
+  weddingCardImageUrl?: string;
 }
 
 interface TimeRemaining {
@@ -26,7 +27,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   groomName,
   brideName,
   venueName,
-  venueCity
+  venueCity,
+  weddingCardImageUrl
 }) => {
   const calculateTimeRemaining = (): TimeRemaining => {
     const target = new Date(targetDateIso).getTime();
@@ -46,6 +48,9 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   };
 
   const [timeLeft, setTimeLeft] = useState<TimeRemaining>(calculateTimeRemaining());
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -66,8 +71,61 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     5
   );
 
-  const handleDownloadIcs = () => {
-    downloadIcsFile(eventTitle, eventDetails, eventLocation, targetDateIso, 5);
+  const effectiveCardUrl =
+    weddingCardImageUrl && weddingCardImageUrl.trim()
+      ? weddingCardImageUrl.trim()
+      : 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&auto=format&fit=crop&q=85';
+
+  // Function to download image directly into user's device / mobile gallery
+  const handleDownloadWeddingCard = async () => {
+    if (isDownloading) return;
+    setIsDownloading(true);
+    setDownloadSuccess(false);
+
+    const safeGroom = (groomName || 'Groom').replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+    const safeBride = (brideName || 'Bride').replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+    const fileName = `${safeGroom}-${safeBride}-Wedding-Card.jpg`;
+
+    try {
+      if (effectiveCardUrl.startsWith('data:')) {
+        const link = document.createElement('a');
+        link.href = effectiveCardUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        try {
+          const res = await fetch(effectiveCardUrl, { mode: 'cors' });
+          if (!res.ok) throw new Error('Fetch failed');
+          const blob = await res.blob();
+          const blobUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
+        } catch {
+          // If cross-origin fetch is restricted, open/trigger direct anchor download
+          const link = document.createElement('a');
+          link.href = effectiveCardUrl;
+          link.target = '_blank';
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 4500);
+    } catch (err) {
+      console.error('Error downloading wedding card:', err);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const format2Digits = (num: number) => num.toString().padStart(2, '0');
@@ -166,13 +224,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
         </div>
       </div>
 
-      {/* Save date calendar action */}
+      {/* Save date calendar action + Download Wedding Card Button */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
         <a
           href={googleCalUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/90 hover:bg-white text-xs font-display tracking-wider text-[#1a3a4d] border border-[#d4af37]/40 shadow-sm transition-all active:scale-95"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white/90 hover:bg-white text-xs font-display tracking-wider text-[#1a3a4d] border border-[#d4af37]/40 shadow-sm transition-all active:scale-95"
         >
           <Calendar className="w-3.5 h-3.5 text-[#2c5f7c]" />
           <span>
@@ -184,20 +242,123 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           </span>
         </a>
 
-        <button
-          onClick={handleDownloadIcs}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/80 hover:bg-white text-xs font-display tracking-wider text-[#1a3a4d] border border-gray-200 shadow-sm transition-all active:scale-95"
-        >
-          <Download className="w-3.5 h-3.5 text-[#d4af37]" />
+        {/* Download Wedding Card Button (Replaced .iCal) */}
+        <div className="inline-flex items-center gap-1">
+          <button
+            onClick={handleDownloadWeddingCard}
+            disabled={isDownloading}
+            title="Download Wedding Card image to your phone/PC gallery"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#f7e7a9] to-[#d4af37] hover:brightness-105 active:scale-95 text-[#0f172a] text-xs font-bold font-display tracking-wide shadow-[0_4px_15px_rgba(212,175,55,0.35)] transition-all border border-[#d4af37]/60 cursor-pointer disabled:opacity-60"
+          >
+            {isDownloading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-[#0f172a]" />
+            ) : downloadSuccess ? (
+              <Check className="w-4 h-4 text-emerald-800" />
+            ) : (
+              <Download className="w-4 h-4 text-[#0f172a]" />
+            )}
+            <span>
+              {isDownloading
+                ? (language === 'ur' ? 'ڈاؤن لوڈ ہو رہا ہے...' : language === 'hi' ? 'डाउनलोड हो रहा है...' : 'Downloading...')
+                : downloadSuccess
+                ? (language === 'ur' ? 'گیلری میں محفوظ ہو گیا! ✓' : language === 'hi' ? 'गैलरी में सेव हो गया! ✓' : 'Saved to Gallery! ✓')
+                : (language === 'ur' ? 'شادی کا کارڈ ڈاؤن لوڈ کریں' : language === 'hi' ? 'शादी का कार्ड डाउनलोड करें' : 'Download Wedding Card')}
+            </span>
+          </button>
+
+          {/* Quick Preview Icon Button */}
+          <button
+            onClick={() => setShowPreviewModal(true)}
+            title="Preview Wedding Card"
+            className="p-2.5 rounded-full bg-white/90 hover:bg-white text-[#2c5f7c] border border-gray-200 shadow-sm transition-all active:scale-90 cursor-pointer"
+          >
+            <Eye className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Download Success Notice */}
+      {downloadSuccess && (
+        <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[11px] font-medium shadow-xs animate-fade-in">
+          <Check className="w-3 h-3 text-emerald-600" />
           <span>
             {language === 'ur'
-              ? 'iCal فائل ڈاؤن لوڈ'
+              ? 'شادی کا کارڈ آپ کی گیلری / فون میں ڈاؤن لوڈ ہو گیا ہے!'
               : language === 'hi'
-              ? 'iCal फ़ाइल डाउनलोड करें'
-              : 'Download .iCal'}
+              ? 'शादी का कार्ड आपकी गैलरी / डिवाइस में डाउनलोड हो गया है!'
+              : 'Wedding card image has been saved to your device / gallery!'}
           </span>
-        </button>
-      </div>
+        </div>
+      )}
+
+      {/* Full Wedding Card Preview Modal */}
+      {showPreviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+          <div className="relative max-w-sm sm:max-w-md w-full bg-[#0c1420] border-2 border-[#d4af37] rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col items-center">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPreviewModal(false)}
+              className="absolute top-3 right-3 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-all cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="text-center mb-3">
+              <h3 className="text-sm sm:text-base font-bold text-[#ffeaa7] flex items-center justify-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-[#d4af37]" />
+                {language === 'ur' ? 'شادی کا شاہی کارڈ' : language === 'hi' ? 'शाही शादी का कार्ड' : 'Royal Wedding Card'}
+              </h3>
+              <p className="text-[11px] text-gray-300 mt-0.5">
+                {language === 'ur'
+                  ? 'کارڈ کو گیلری میں محفوظ کرنے کے لیے نیچے بٹن دبائیں'
+                  : language === 'hi'
+                  ? 'कार्ड को अपनी गैलरी में सेव करने के लिए नीचे बटन दबाएं'
+                  : 'Tap the button below to save the card to your gallery'}
+              </p>
+            </div>
+
+            {/* Card Image Display */}
+            <div className="w-full max-h-[60vh] overflow-hidden rounded-2xl border border-[#d4af37]/40 shadow-inner bg-black/40 flex items-center justify-center p-1">
+              <img
+                src={effectiveCardUrl}
+                alt="Wedding Card"
+                className="max-h-[58vh] w-auto max-w-full object-contain rounded-xl shadow-lg"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-4 flex items-center gap-3 w-full">
+              <button
+                onClick={() => {
+                  handleDownloadWeddingCard();
+                }}
+                disabled={isDownloading}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#f7e7a9] to-[#d4af37] text-[#0f172a] font-bold text-xs flex items-center justify-center gap-2 shadow-lg hover:brightness-105 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-[#0f172a]" />
+                ) : (
+                  <Download className="w-4 h-4 text-[#0f172a]" />
+                )}
+                <span>
+                  {language === 'ur'
+                    ? 'گیلری میں سیو کریں (Save to Gallery)'
+                    : language === 'hi'
+                    ? 'गैलरी में सेव करें (Save to Gallery)'
+                    : 'Save to Gallery'}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all cursor-pointer"
+              >
+                {language === 'ur' ? 'بند کریں' : language === 'hi' ? 'बंद करें' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
