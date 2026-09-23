@@ -290,10 +290,10 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
                 </button>
               )}
 
-              {/* Scrollable list */}
+              {/* Scrollable list (Exactly 5 names visible in view on window/tablet/mobile, rest accessible via scroll) */}
               <div
                 ref={groomListRef}
-                className="space-y-2 max-h-[360px] sm:max-h-[420px] md:max-h-[460px] overflow-y-auto pr-1.5 custom-scroll touch-pan-y"
+                className="space-y-2 max-h-[300px] overflow-y-auto pr-1.5 custom-scroll touch-pan-y"
               >
                 {groomFamily.members.map((member) => renderMember(member, 'groom'))}
               </div>
@@ -423,10 +423,10 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
                 </button>
               )}
 
-              {/* Scrollable list with fixed scroll viewport */}
+              {/* Scrollable list with fixed 5-names scroll viewport */}
               <div
                 ref={brideListRef}
-                className="space-y-2 max-h-[290px] sm:max-h-[340px] md:max-h-[380px] overflow-y-auto pr-1.5 custom-scroll touch-pan-y"
+                className="space-y-2 max-h-[300px] overflow-y-auto pr-1.5 custom-scroll touch-pan-y"
               >
                 {brideFamily.members.map((member) => renderMember(member, 'bride'))}
               </div>
