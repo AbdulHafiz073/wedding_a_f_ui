@@ -105,22 +105,29 @@ export const RsvpForm: React.FC<RsvpFormProps> = ({ language, initialWishes }) =
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      {/* RSVP Form Card */}
-      <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/70 shadow-[0_12px_45px_rgba(44,95,124,0.1)]">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-full bg-[#e8f4f8] text-[#2c5f7c] flex items-center justify-center mx-auto mb-2 border border-[#2c5f7c]/20">
-            <MessageSquareHeart className="w-6 h-6" />
+    <div className="w-full max-w-lg mx-auto">
+      {/* RSVP Form Card with Rich Colorful Royal Gradient & Golden Accents */}
+      <div className="relative rounded-3xl p-6 sm:p-9 bg-gradient-to-br from-white/95 via-[#fffdf9]/95 to-[#f7f2ea]/95 backdrop-blur-xl border-2 border-[#d4af37]/45 shadow-[0_18px_50px_rgba(44,95,124,0.18),0_0_24px_rgba(212,175,55,0.18)] overflow-hidden">
+        
+        {/* Subtle Decorative Floral Background Glow Accents */}
+        <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-gradient-to-br from-[#ffd166]/25 via-[#f43f5e]/15 to-transparent blur-xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-36 h-36 rounded-full bg-gradient-to-tr from-[#38bdf8]/20 via-[#d4af37]/20 to-transparent blur-xl pointer-events-none" />
+
+        <div className="relative z-10 text-center mb-6">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#1a3a4d] via-[#2c5f7c] to-[#3a7396] text-[#ffd166] flex items-center justify-center mx-auto mb-2.5 border-2 border-[#d4af37]/60 shadow-md shadow-[#1a3a4d]/20">
+            <MessageSquareHeart className="w-7 h-7 text-[#ffeaa7]" />
           </div>
-          <h2 className={`text-3xl sm:text-4xl text-[#1a3a4d] mb-1 ${language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi font-bold' : 'font-script'}`}>
+          <h2 className={`text-3xl sm:text-4xl text-[#1a3a4d] mb-1 font-bold ${language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : 'font-display'}`}>
             {language === 'ur' ? 'پیغام اور جواب بھیجیں' : language === 'hi' ? 'संदेश व उपस्थिति दर्ज करें' : 'Send a Message'}
           </h2>
-          <div className="w-16 h-[1px] bg-[#d4af37] mx-auto relative my-2.5">
-            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[#d4af37] text-xs">
-              ✉
-            </span>
+          
+          <div className="flex items-center justify-center gap-2 my-2.5">
+            <span className="w-10 h-0.5 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
+            <span className="text-[#d4af37] text-sm">✦ ✉ ✦</span>
+            <span className="w-10 h-0.5 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
           </div>
-          <p className={`text-xs text-[#777] ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
+
+          <p className={`text-xs sm:text-sm text-[#4a5568] max-w-sm mx-auto font-medium ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
             {language === 'ur'
               ? 'اپنی شرکت کی تصدیق کریں اور دعا کا تحفہ بھیجیں'
               : language === 'hi'
@@ -131,13 +138,13 @@ export const RsvpForm: React.FC<RsvpFormProps> = ({ language, initialWishes }) =
 
         {isSubmitted ? (
           <div className="py-8 text-center animate-fadeIn">
-            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-200">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 border-2 border-emerald-300 shadow-md">
               <CheckCircle2 className="w-9 h-9" />
             </div>
             <h3 className={`text-xl font-bold text-[#1a3a4d] mb-1 ${language === 'hi' ? 'font-hindi' : 'font-display'}`}>
               {language === 'ur' ? 'پیغام کامیابی سے موصول ہوا!' : language === 'hi' ? 'संदेश व जवाब सफलतापूर्वक भेजा गया!' : 'Message & RSVP Sent!'}
             </h3>
-            <p className={`text-xs text-[#777] ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
+            <p className={`text-xs text-[#555] ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
               {language === 'ur'
                 ? 'آپ کی محبت اور نیک تمناؤں کا شکریہ! جزاکم اللہ خیراً۔'
                 : language === 'hi'
@@ -146,11 +153,11 @@ export const RsvpForm: React.FC<RsvpFormProps> = ({ language, initialWishes }) =
             </p>
           </div>
         ) : (
-          <form id="rsvpForm" onSubmit={handleSubmit} className="space-y-4">
+          <form id="rsvpForm" onSubmit={handleSubmit} className="relative z-10 space-y-4">
             {/* Guest Name */}
             <div>
-              <label className={`block text-xs font-semibold tracking-wider text-[#777] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
-                {language === 'ur' ? 'آپ کا نام' : language === 'hi' ? 'आपका नाम' : 'Your Name'} <span className="text-red-500">*</span>
+              <label className={`block text-xs font-bold tracking-wider text-[#1a3a4d] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
+                {language === 'ur' ? 'آپ کا نام' : language === 'hi' ? 'आपका नाम' : 'Your Name'} <span className="text-[#e74c3c]">*</span>
               </label>
               <input
                 type="text"
@@ -158,13 +165,13 @@ export const RsvpForm: React.FC<RsvpFormProps> = ({ language, initialWishes }) =
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder={language === 'ur' ? 'اپنا مکمل نام درج کریں' : language === 'hi' ? 'पूरा नाम दर्ज करें' : 'Full name'}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/70 text-[#1a3a4d] placeholder-gray-400 text-sm focus:outline-none focus:border-[#2c5f7c] focus:ring-2 focus:ring-[#2c5f7c]/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl border-2 border-amber-200/80 bg-white text-[#1a3a4d] placeholder-gray-400 text-sm focus:outline-none focus:border-[#b89125] focus:ring-3 focus:ring-[#d4af37]/20 transition-all shadow-inner"
               />
             </div>
 
             {/* Email Address */}
             <div>
-              <label className={`block text-xs font-semibold tracking-wider text-[#777] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
+              <label className={`block text-xs font-bold tracking-wider text-[#1a3a4d] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
                 {language === 'ur' ? 'ای میل پتہ' : language === 'hi' ? 'ईमेल पता' : 'Email Address'}
               </label>
               <input
@@ -172,36 +179,36 @@ export const RsvpForm: React.FC<RsvpFormProps> = ({ language, initialWishes }) =
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/70 text-[#1a3a4d] placeholder-gray-400 text-sm focus:outline-none focus:border-[#2c5f7c] focus:ring-2 focus:ring-[#2c5f7c]/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl border-2 border-amber-200/80 bg-white text-[#1a3a4d] placeholder-gray-400 text-sm focus:outline-none focus:border-[#b89125] focus:ring-3 focus:ring-[#d4af37]/20 transition-all shadow-inner"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Attendance Select */}
               <div>
-                <label className={`block text-xs font-semibold tracking-wider text-[#777] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
+                <label className={`block text-xs font-bold tracking-wider text-[#1a3a4d] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
                   {language === 'ur' ? 'کیا آپ شریک ہوں گے؟' : language === 'hi' ? 'क्या आप शामिल होंगे?' : 'Will you attend?'}
                 </label>
                 <select
                   value={formData.attendance}
                   onChange={(e) => setFormData({ ...formData, attendance: e.target.value as 'yes' | 'no' | 'maybe' })}
-                  className="w-full px-3 py-3 rounded-xl border border-gray-200 bg-white/70 text-[#1a3a4d] text-sm focus:outline-none focus:border-[#2c5f7c] focus:ring-2 focus:ring-[#2c5f7c]/20 transition-all cursor-pointer"
+                  className="w-full px-3 py-3 rounded-xl border-2 border-amber-200/80 bg-white text-[#1a3a4d] text-sm focus:outline-none focus:border-[#b89125] focus:ring-3 focus:ring-[#d4af37]/20 transition-all cursor-pointer font-medium shadow-inner"
                 >
                   <option value="yes">
-                    {language === 'ur' ? 'جی ہاں، ضرور آؤں گا' : language === 'hi' ? 'हाँ, ज़रूर आऊँगा/आऊँगी' : 'Yes, I will be there'}
+                    {language === 'ur' ? '✨ جی ہاں، ضرور آؤں گا' : language === 'hi' ? '✨ हाँ, ज़रूर आऊँगा/आऊँगी' : '✨ Yes, I will be there'}
                   </option>
                   <option value="maybe">
-                    {language === 'ur' ? 'شاید / کوشش کروں گا' : language === 'hi' ? 'शायद / कोशिश रहेगी' : 'Maybe'}
+                    {language === 'ur' ? '⏳ شاید / کوشش کروں گا' : language === 'hi' ? '⏳ शायद / कोशिश रहेगी' : '⏳ Maybe'}
                   </option>
                   <option value="no">
-                    {language === 'ur' ? 'معذرت، شریک نہیں ہو سکوں گا' : language === 'hi' ? 'माफ़ करें, नहीं आ पाऊँगा/पाऊँगी' : "Sorry, can't make it"}
+                    {language === 'ur' ? '🤍 معذرت، شریک نہیں ہو سکوں گا' : language === 'hi' ? '🤍 माफ़ करें, नहीं आ पाऊँगा/पाऊँगी' : "🤍 Sorry, can't make it"}
                   </option>
                 </select>
               </div>
 
               {/* Number of Guests */}
               <div>
-                <label className={`block text-xs font-semibold tracking-wider text-[#777] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
+                <label className={`block text-xs font-bold tracking-wider text-[#1a3a4d] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
                   {language === 'ur' ? 'افراد کی تعداد' : language === 'hi' ? 'मेहमानों की संख्या' : 'No. of Guests'}
                 </label>
                 <div className="relative">
@@ -211,16 +218,16 @@ export const RsvpForm: React.FC<RsvpFormProps> = ({ language, initialWishes }) =
                     max="10"
                     value={formData.guestsCount}
                     onChange={(e) => setFormData({ ...formData, guestsCount: Math.max(1, parseInt(e.target.value) || 1) })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/70 text-[#1a3a4d] text-sm focus:outline-none focus:border-[#2c5f7c] focus:ring-2 focus:ring-[#2c5f7c]/20 transition-all"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-amber-200/80 bg-white text-[#1a3a4d] text-sm focus:outline-none focus:border-[#b89125] focus:ring-3 focus:ring-[#d4af37]/20 transition-all shadow-inner font-bold"
                   />
-                  <Users className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Users className="w-4 h-4 text-amber-600 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
             </div>
 
             {/* Message / Dua Textarea */}
             <div>
-              <label className={`block text-xs font-semibold tracking-wider text-[#777] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
+              <label className={`block text-xs font-bold tracking-wider text-[#1a3a4d] mb-1.5 ${language === 'hi' ? 'font-hindi' : 'font-display uppercase'}`}>
                 {language === 'ur' ? 'آپ کی دعائیں اور پیغام' : language === 'hi' ? 'आपकी दुआएं व शुभकामनाएं' : 'Your Wishes / Message'}
               </label>
               <textarea
@@ -234,17 +241,17 @@ export const RsvpForm: React.FC<RsvpFormProps> = ({ language, initialWishes }) =
                     ? 'दूल्हा-दुल्हन के लिए अपनी दुआएं और शुभकामनाएं लिखें...'
                     : 'Write your wishes and blessings for the couple...'
                 }
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/70 text-[#1a3a4d] placeholder-gray-400 text-sm focus:outline-none focus:border-[#2c5f7c] focus:ring-2 focus:ring-[#2c5f7c]/20 transition-all resize-none"
+                className="w-full px-4 py-3 rounded-xl border-2 border-amber-200/80 bg-white text-[#1a3a4d] placeholder-gray-400 text-sm focus:outline-none focus:border-[#b89125] focus:ring-3 focus:ring-[#d4af37]/20 transition-all resize-none shadow-inner"
               />
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button with Rich Royal Gold Gradient */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 px-6 rounded-xl font-display font-medium text-sm tracking-wider uppercase text-white bg-gradient-to-r from-[#2c5f7c] via-[#3a7396] to-[#4a8bb5] hover:opacity-95 shadow-md shadow-blue-900/15 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-4 px-6 rounded-2xl font-display font-bold text-sm tracking-wider uppercase text-white bg-gradient-to-r from-[#1a3a4d] via-[#2c5f7c] to-[#b89125] hover:opacity-95 shadow-lg shadow-[#1a3a4d]/25 border border-[#d4af37]/50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-[#ffeaa7]" />
               <span>
                 {isSubmitting
                   ? (language === 'ur' ? 'بھیجا جا رہا ہے...' : language === 'hi' ? 'भेजा जा रहा है...' : 'Sending...')
@@ -255,39 +262,39 @@ export const RsvpForm: React.FC<RsvpFormProps> = ({ language, initialWishes }) =
         )}
       </div>
 
-      {/* Guestbook Feed */}
+      {/* Guestbook Feed with custom-scroll */}
       {wishes.length > 0 && (
-        <div className="mt-10">
+        <div className="mt-8">
           <div className="flex items-center justify-between mb-4 px-2">
             <h3 className={`text-lg font-bold text-[#1a3a4d] flex items-center gap-2 ${language === 'hi' ? 'font-hindi' : 'font-display'}`}>
               <Heart className="w-4 h-4 text-[#e74c3c] fill-[#e74c3c]" />
               <span>{language === 'ur' ? 'مہمانوں کی دعائیں' : language === 'hi' ? 'मेहमानों की दुआएं' : 'Guest Blessings & Wishes'}</span>
             </h3>
-            <span className={`text-xs text-[#777] bg-white/70 px-2.5 py-1 rounded-full border border-gray-200 ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
+            <span className={`text-xs text-amber-900 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 font-bold ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
               {wishes.length} {language === 'ur' ? 'پیغامات' : language === 'hi' ? 'संदेश' : 'wishes'}
             </span>
           </div>
 
-          <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-72 overflow-y-auto pr-1.5 custom-scroll">
             {wishes.map((item) => (
               <div
                 key={item.id}
-                className="bg-white/75 backdrop-blur-sm rounded-2xl p-4 border border-white/80 shadow-sm"
+                className="bg-white/85 backdrop-blur-sm rounded-2xl p-4 border border-amber-100 shadow-xs hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#2c5f7c] to-[#4a8bb5] text-white text-xs font-bold flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1a3a4d] via-[#2c5f7c] to-[#b89125] text-white text-xs font-bold flex items-center justify-center border border-amber-300">
                       {item.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="font-display text-sm font-bold text-[#1a3a4d]">{item.name}</span>
                   </div>
-                  <span className="text-[10px] text-[#777] font-body">{item.timestamp}</span>
+                  <span className="text-[10px] text-gray-500 font-body">{item.timestamp}</span>
                 </div>
-                <p className={`text-xs text-[#555] pl-9 leading-relaxed ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
+                <p className={`text-xs text-gray-700 pl-10 leading-relaxed font-medium ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
                   "{item.message}"
                 </p>
                 {item.attendance === 'yes' && (
-                  <div className={`mt-2 pl-9 flex items-center gap-1.5 text-[10px] text-emerald-700 font-semibold ${language === 'hi' ? 'font-hindi' : ''}`}>
+                  <div className={`mt-2 pl-10 flex items-center gap-1.5 text-[10px] text-emerald-700 font-bold ${language === 'hi' ? 'font-hindi' : ''}`}>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     <span>
                       {language === 'ur'

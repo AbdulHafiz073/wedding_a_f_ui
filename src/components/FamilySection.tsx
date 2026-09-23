@@ -1,5 +1,5 @@
-import React from 'react';
-import { Users, Heart, Sparkles, Edit3 } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Users, Heart, Sparkles, Edit3, ChevronUp, ChevronDown } from 'lucide-react';
 import { Language, WeddingData, FamilyMember } from '../types';
 
 interface FamilySectionProps {
@@ -15,6 +15,61 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
 }) => {
   const groomFamily = data.groomFamily;
   const brideFamily = data.brideFamily;
+
+  const groomListRef = useRef<HTMLDivElement>(null);
+  const brideListRef = useRef<HTMLDivElement>(null);
+
+  const [groomCanScrollUp, setGroomCanScrollUp] = useState(false);
+  const [groomCanScrollDown, setGroomCanScrollDown] = useState(false);
+  const [brideCanScrollUp, setBrideCanScrollUp] = useState(false);
+  const [brideCanScrollDown, setBrideCanScrollDown] = useState(false);
+
+  const updateScrollState = (
+    el: HTMLDivElement | null,
+    setUp: React.Dispatch<React.SetStateAction<boolean>>,
+    setDown: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    setUp(scrollTop > 4);
+    setDown(scrollTop + clientHeight < scrollHeight - 6);
+  };
+
+  useEffect(() => {
+    const groomEl = groomListRef.current;
+    const brideEl = brideListRef.current;
+
+    const handleGroomScroll = () =>
+      updateScrollState(groomEl, setGroomCanScrollUp, setGroomCanScrollDown);
+    const handleBrideScroll = () =>
+      updateScrollState(brideEl, setBrideCanScrollUp, setBrideCanScrollDown);
+
+    if (groomEl) {
+      handleGroomScroll();
+      groomEl.addEventListener('scroll', handleGroomScroll, { passive: true });
+    }
+    if (brideEl) {
+      handleBrideScroll();
+      brideEl.addEventListener('scroll', handleBrideScroll, { passive: true });
+    }
+
+    const timer = setTimeout(() => {
+      handleGroomScroll();
+      handleBrideScroll();
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+      if (groomEl) groomEl.removeEventListener('scroll', handleGroomScroll);
+      if (brideEl) brideEl.removeEventListener('scroll', handleBrideScroll);
+    };
+  }, [groomFamily.members, brideFamily.members]);
+
+  const scrollContainer = (ref: React.RefObject<HTMLDivElement | null>, direction: 'up' | 'down') => {
+    if (!ref.current) return;
+    const scrollAmount = direction === 'up' ? -180 : 180;
+    ref.current.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+  };
 
   const groomName =
     language === 'ur'
@@ -50,14 +105,14 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
     return (
       <div
         key={member.id}
-        className={`flex items-center justify-between gap-3 py-2 px-3 rounded-2xl bg-white/85 hover:bg-white border transition-all duration-200 group shadow-xs hover:shadow-md ${
+        className={`flex items-center justify-between gap-2.5 sm:gap-3 py-2.5 px-3 sm:px-3.5 rounded-2xl bg-white/90 hover:bg-white border transition-all duration-200 group shadow-xs hover:shadow-md ${
           isGroom 
-            ? 'border-amber-200/60 hover:border-amber-300' 
-            : 'border-rose-200/60 hover:border-rose-300'
+            ? 'border-amber-200/70 hover:border-amber-400' 
+            : 'border-rose-200/70 hover:border-rose-400'
         }`}
       >
         {/* Avatar/Photo strictly placed BEFORE the name text in left-to-right order */}
-        <div className="flex items-center gap-3 min-w-0" dir="ltr">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1" dir="ltr">
           {/* Member Photo Avatar / Badge */}
           {member.imageUrl ? (
             <div className={`relative w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 border-2 shadow-xs group-hover:scale-105 transition-transform duration-200 ${
@@ -84,11 +139,12 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
           )}
 
           {/* Member Name and Sub-relation text placed after image */}
-          <div className="min-w-0 text-left" dir={language === 'ur' ? 'rtl' : 'ltr'}>
+          <div className="min-w-0 flex-1 text-left" dir={language === 'ur' ? 'rtl' : 'ltr'}>
             <span
               className={`text-xs sm:text-sm font-bold text-gray-900 truncate block leading-tight ${
                 language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : ''
               }`}
+              title={name}
             >
               {name}
             </span>
@@ -105,8 +161,8 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
         <span
           className={`text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 border uppercase tracking-wider ${
             isGroom
-              ? 'bg-amber-100/80 text-amber-900 border-amber-300/50'
-              : 'bg-rose-100/80 text-rose-900 border-rose-300/50'
+              ? 'bg-amber-100/90 text-amber-900 border-amber-300/60'
+              : 'bg-rose-100/90 text-rose-900 border-rose-300/60'
           } ${language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : ''}`}
         >
           {relation}
@@ -219,9 +275,82 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
                 : groomFamily.parentsIntroEn}
             </p>
 
-            {/* Family Members List */}
-            <div className="space-y-2">
-              {groomFamily.members.map((member) => renderMember(member, 'groom'))}
+            {/* Family Members List with smooth touch & mouse scroll + Up/Down Control Buttons */}
+            <div className="relative group/list">
+              {/* Up Scroll Floating Button */}
+              {groomCanScrollUp && (
+                <button
+                  type="button"
+                  onClick={() => scrollContainer(groomListRef, 'up')}
+                  aria-label="Scroll Up"
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-[11px] font-bold shadow-lg hover:shadow-xl transition-all transform active:scale-95 border border-white/60 animate-bounce cursor-pointer select-none"
+                >
+                  <ChevronUp className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>{language === 'ur' ? 'اوپر' : language === 'hi' ? 'ऊपर' : 'Scroll Up'}</span>
+                </button>
+              )}
+
+              {/* Scrollable list */}
+              <div
+                ref={groomListRef}
+                className="space-y-2 max-h-[360px] sm:max-h-[420px] md:max-h-[460px] overflow-y-auto pr-1.5 custom-scroll touch-pan-y"
+              >
+                {groomFamily.members.map((member) => renderMember(member, 'groom'))}
+              </div>
+
+              {/* Down Scroll Floating Button */}
+              {groomCanScrollDown && (
+                <button
+                  type="button"
+                  onClick={() => scrollContainer(groomListRef, 'down')}
+                  aria-label="Scroll Down"
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-[11px] font-bold shadow-lg hover:shadow-xl transition-all transform active:scale-95 border border-white/60 animate-bounce cursor-pointer select-none"
+                >
+                  <ChevronDown className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>{language === 'ur' ? 'مزید نام دیکھیں' : language === 'hi' ? 'और नाम देखें' : 'Scroll Down'}</span>
+                </button>
+              )}
+            </div>
+
+            {/* Permanent Quick Scroll Navigation Controls Bar (Mobile, Tablet, Windows) */}
+            <div className="mt-3 pt-2.5 border-t border-amber-200/50 flex items-center justify-between gap-2 text-xs">
+              <span className="text-[10px] sm:text-[11px] font-semibold text-amber-800/80 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-600" />
+                {language === 'ur'
+                  ? 'تمام نام دیکھنے کے لیے اسکرول کریں'
+                  : language === 'hi'
+                  ? 'सभी नाम देखने के लिए स्क्रोल करें'
+                  : 'Scroll to explore full list'}
+              </span>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => scrollContainer(groomListRef, 'up')}
+                  disabled={!groomCanScrollUp}
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border transition-all ${
+                    groomCanScrollUp
+                      ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200 active:scale-90 shadow-xs cursor-pointer'
+                      : 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
+                  }`}
+                  title="Scroll Up"
+                >
+                  <ChevronUp className="w-4 h-4 stroke-[2.5]" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollContainer(groomListRef, 'down')}
+                  disabled={!groomCanScrollDown}
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border transition-all ${
+                    groomCanScrollDown
+                      ? 'bg-amber-600 text-white border-amber-700 hover:bg-amber-700 active:scale-90 shadow-sm cursor-pointer'
+                      : 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
+                  }`}
+                  title="Scroll Down"
+                >
+                  <ChevronDown className="w-4 h-4 stroke-[2.5]" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -279,9 +408,82 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
                 : brideFamily.parentsIntroEn}
             </p>
 
-            {/* Family Members List */}
-            <div className="space-y-2">
-              {brideFamily.members.map((member) => renderMember(member, 'bride'))}
+            {/* Family Members List with smooth touch & mouse scroll + Up/Down Control Buttons */}
+            <div className="relative group/list">
+              {/* Up Scroll Floating Button */}
+              {brideCanScrollUp && (
+                <button
+                  type="button"
+                  onClick={() => scrollContainer(brideListRef, 'up')}
+                  aria-label="Scroll Up"
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white text-[11px] font-bold shadow-lg hover:shadow-xl transition-all transform active:scale-95 border border-white/60 animate-bounce cursor-pointer select-none"
+                >
+                  <ChevronUp className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>{language === 'ur' ? 'اوپر' : language === 'hi' ? 'ऊपर' : 'Scroll Up'}</span>
+                </button>
+              )}
+
+              {/* Scrollable list with fixed scroll viewport */}
+              <div
+                ref={brideListRef}
+                className="space-y-2 max-h-[290px] sm:max-h-[340px] md:max-h-[380px] overflow-y-auto pr-1.5 custom-scroll touch-pan-y"
+              >
+                {brideFamily.members.map((member) => renderMember(member, 'bride'))}
+              </div>
+
+              {/* Down Scroll Floating Button */}
+              {brideCanScrollDown && (
+                <button
+                  type="button"
+                  onClick={() => scrollContainer(brideListRef, 'down')}
+                  aria-label="Scroll Down"
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white text-[11px] font-bold shadow-lg hover:shadow-xl transition-all transform active:scale-95 border border-white/60 animate-bounce cursor-pointer select-none"
+                >
+                  <ChevronDown className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>{language === 'ur' ? 'مزید نام دیکھیں' : language === 'hi' ? 'और नाम देखें' : 'Scroll Down'}</span>
+                </button>
+              )}
+            </div>
+
+            {/* Permanent Quick Scroll Navigation Controls Bar (Mobile, Tablet, Windows) */}
+            <div className="mt-3 pt-2.5 border-t border-rose-200/50 flex items-center justify-between gap-2 text-xs">
+              <span className="text-[10px] sm:text-[11px] font-semibold text-rose-800/80 flex items-center gap-1">
+                <Heart className="w-3 h-3 text-rose-600 fill-rose-600/20" />
+                {language === 'ur'
+                  ? 'تمام نام دیکھنے کے لیے اسکرول کریں'
+                  : language === 'hi'
+                  ? 'सभी नाम देखने के लिए स्क्रोल करें'
+                  : 'Scroll to explore full list'}
+              </span>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => scrollContainer(brideListRef, 'up')}
+                  disabled={!brideCanScrollUp}
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border transition-all ${
+                    brideCanScrollUp
+                      ? 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200 active:scale-90 shadow-xs cursor-pointer'
+                      : 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
+                  }`}
+                  title="Scroll Up"
+                >
+                  <ChevronUp className="w-4 h-4 stroke-[2.5]" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollContainer(brideListRef, 'down')}
+                  disabled={!brideCanScrollDown}
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border transition-all ${
+                    brideCanScrollDown
+                      ? 'bg-rose-600 text-white border-rose-700 hover:bg-rose-700 active:scale-90 shadow-sm cursor-pointer'
+                      : 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
+                  }`}
+                  title="Scroll Down"
+                >
+                  <ChevronDown className="w-4 h-4 stroke-[2.5]" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

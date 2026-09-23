@@ -218,11 +218,31 @@ export const defaultWeddingData: WeddingData = {
         imageUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80'
       },
       {
+        id: 'b-uncle-1',
+        nameEn: 'Janab Imran Khan & Family',
+        nameUr: 'جناب عمران خان و اہلیہ',
+        nameHi: 'जनाब इमरान ख़ान व परिवार',
+        relationEn: 'Chacha (Uncle)',
+        relationUr: 'چچا جان',
+        relationHi: 'चाचा जी',
+        imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'
+      },
+      {
+        id: 'b-aunt-1',
+        nameEn: 'Mohtarma Shagufta Khan',
+        nameUr: 'محترمہ شگفتہ خان',
+        nameHi: 'मोहतरमा शगुफ़्ता ख़ान',
+        relationEn: 'Phupi (Aunt)',
+        relationUr: 'پھوپھی جان',
+        relationHi: 'फूफी जान',
+        imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80'
+      },
+      {
         id: 'b-elders',
         nameEn: 'Janab Sajid Khan & All Near & Dear Ones',
         nameUr: 'جناب ساجد خان و جملہ رشتہ دار و معززین',
         nameHi: 'जनाब साजिद ख़ान व समस्त स्नेहीजन',
-        relationEn: 'Uncles & Family',
+        relationEn: 'Mamu & Family',
         relationUr: 'ماموں، چچا و اعزہ و اقارب',
         relationHi: 'मामा, चाचा व पारिवारिक सदस्य',
         imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
@@ -370,6 +390,7 @@ export const defaultWeddingData: WeddingData = {
   scratchSurpriseMessageEn: 'You are cordially invited to celebrate our Sacred Nikah. Your presence & prayers are our true blessing! 🤍',
   scratchSurpriseMessageUr: 'آپ کو ہمارے بابرکت نکاح کی پرمسرت تقریب میں دل کی اتھاہ گہرائیوں سے دعوت دی جاتی ہے۔ آپ کی دعائیں ہمارے لیے انمول تحفہ ہیں! 🤍',
   scratchSurpriseMessageHi: 'आप हमारे मुबारक़ निकाह के पवित्र अवसर पर सादर आमंत्रित हैं। आपकी नेक दुआएं ही हमारे लिए सबसे अनमोल तोहफ़ा हैं! 🤍',
+  customFaviconUrl: '/favicon.svg',
   adminPin: '7860'
 };
 

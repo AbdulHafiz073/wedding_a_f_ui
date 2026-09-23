@@ -56,13 +56,12 @@ export const DoorIntro: React.FC<DoorIntroProps> = ({
       const gateTotalW = 340;
       const gateTotalH = 520;
 
-      // Minimal reserved space for header & footer:
+      // Mobile (<640px): No hanging images outside gate, so gate can be proudly and clearly centered with maximal scale!
+      // Tablet & Desktop (>=640px): Left Groom & Right Bride hanging frames are displayed.
       const isMobile = w < 640;
-      const headerFooterSpace = isMobile ? 44 : 52;
+      const headerFooterSpace = isMobile ? 48 : 52;
+      const sideReservation = isMobile ? 24 : w < 1024 ? 260 : 340;
       
-      // On mobile view, side portrait images are hidden, so door can take full available width.
-      // On tablet and window view, reserve generous horizontal space so the swaying hanging frames breathe comfortably:
-      const sideReservation = isMobile ? 12 : w < 1024 ? 260 : 360;
       const availableW = Math.max(120, w - sideReservation);
       const availableH = Math.max(160, h - headerFooterSpace);
 
@@ -71,7 +70,7 @@ export const DoorIntro: React.FC<DoorIntroProps> = ({
 
       // Fit inside viewport while expanding height from bottom to top
       const bestScale = Math.min(scaleW, scaleH);
-      const clampedScale = Math.max(0.42, Math.min(2.4, bestScale));
+      const clampedScale = Math.max(isMobile ? 0.58 : 0.42, Math.min(2.4, bestScale));
 
       setViewportScale(clampedScale);
     };
@@ -165,34 +164,34 @@ export const DoorIntro: React.FC<DoorIntroProps> = ({
           }}
           className="relative flex items-center justify-center shrink-0 transition-all duration-150"
         >
-          {/* Groom Royal Portrait Hanging by Rope (Left of Gate - Tablet & Window View ONLY) */}
+          {/* Groom Royal Portrait Hanging by Rope (Left of Gate - Tablet & Window View ONLY, hidden on mobile) */}
           <div
             id="window-groom-box"
-            className={`absolute right-[calc(100%+28px)] sm:right-[calc(100%+40px)] md:right-[calc(100%+60px)] lg:right-[calc(100%+80px)] xl:right-[calc(100%+104px)] top-1/2 -translate-y-1/2 z-30 transition-all duration-700 pointer-events-auto select-none hidden sm:flex flex-col items-center ${
+            className={`absolute right-[calc(100%+16px)] sm:right-[calc(100%+24px)] md:right-[calc(100%+40px)] lg:right-[calc(100%+70px)] top-1/2 -translate-y-1/2 z-30 transition-all duration-700 pointer-events-auto select-none hidden sm:flex flex-col items-center ${
               isOpening ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'
             }`}
           >
             {/* Swaying Assembly - Pendulum swing from top rope anchor */}
-            <div className="animate-rope-sway-left origin-top flex flex-col items-center drop-shadow-[0_12px_24px_rgba(26,58,77,0.3)]">
-              {/* 1. Top Wall Hook / Brass Peg (दीवार की सुनहरी खूंटी) */}
+            <div className="animate-rope-sway-left origin-top flex flex-col items-center drop-shadow-[0_8px_18px_rgba(26,58,77,0.3)]">
+              {/* 1. Top Wall Hook / Brass Peg */}
               <div className="relative flex flex-col items-center z-20">
-                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#ffd166] via-[#d4af37] to-[#8c6d23] border border-[#5c430e] shadow-[0_2px_4px_rgba(0,0,0,0.4)] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#3d2c08] shadow-inner" />
+                <div className="w-3 sm:w-4 h-3 sm:h-4 rounded-full bg-gradient-to-br from-[#ffd166] via-[#d4af37] to-[#8c6d23] border border-[#5c430e] shadow-xs flex items-center justify-center">
+                  <div className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#3d2c08]" />
                 </div>
               </div>
 
-              {/* 2. Main Vertical Hanging Braided Rope (सुनहरी लटकी रस्सी) */}
-              <div className="w-1.5 h-10 md:h-14 lg:h-18 bg-gradient-to-b from-[#8c6d23] via-[#ffd166] to-[#b89125] shadow-xs relative overflow-hidden">
+              {/* 2. Main Vertical Hanging Braided Rope */}
+              <div className="w-1 sm:w-1.5 h-6 sm:h-10 md:h-14 lg:h-18 bg-gradient-to-b from-[#8c6d23] via-[#ffd166] to-[#b89125] shadow-xs relative overflow-hidden">
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(70,40,10,0.45)_2px,rgba(70,40,10,0.45)_4px)]" />
               </div>
 
               {/* 3. Golden Knotted Bead + Triangular Suspension Cords */}
               <div className="relative flex flex-col items-center z-20 -mt-0.5 w-full">
-                <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-b from-[#ffeaa7] via-[#ffd166] to-[#b89125] border border-[#7a5a15] shadow-sm flex items-center justify-center">
-                  <div className="w-1 h-1 rounded-full bg-[#4a3407]" />
+                <div className="w-2.5 sm:w-3.5 h-2.5 sm:h-3.5 rounded-full bg-gradient-to-b from-[#ffeaa7] via-[#ffd166] to-[#b89125] border border-[#7a5a15] shadow-xs flex items-center justify-center">
+                  <div className="w-0.5 sm:w-1 h-0.5 sm:h-1 rounded-full bg-[#4a3407]" />
                 </div>
                 {/* Suspension cord lines leading to left and right corners of frame */}
-                <svg className="w-24 sm:w-28 md:w-32 h-6 -mt-1 text-[#d4af37]" viewBox="0 0 100 24" fill="none">
+                <svg className="w-16 sm:w-24 md:w-30 h-4 sm:h-6 -mt-0.5 sm:-mt-1 text-[#d4af37]" viewBox="0 0 100 24" fill="none">
                   <line x1="50" y1="2" x2="10" y2="23" stroke="#8c6d23" strokeWidth="2.5" strokeLinecap="round" />
                   <line x1="50" y1="2" x2="90" y2="23" stroke="#8c6d23" strokeWidth="2.5" strokeLinecap="round" />
                   <line x1="50" y1="2" x2="10" y2="23" stroke="#ffd166" strokeWidth="1.2" strokeLinecap="round" />
@@ -203,17 +202,17 @@ export const DoorIntro: React.FC<DoorIntroProps> = ({
               </div>
 
               {/* 4. The Hanging Royal Frame */}
-              <div className="relative flex flex-col items-center p-1.5 sm:p-2 md:p-2.5 rounded-t-[32px] sm:rounded-t-[42px] md:rounded-t-[50px] rounded-b-xl sm:rounded-b-2xl bg-gradient-to-b from-[#faf7f2]/95 via-[#f5ede0]/95 to-[#e8decb]/95 backdrop-blur-md border-2 border-[#d4af37] shadow-[0_8px_20px_rgba(26,58,77,0.2),0_0_14px_rgba(212,175,55,0.22)] w-[96px] sm:w-[114px] md:w-[138px] lg:w-[166px]">
+              <div className="relative flex flex-col items-center p-1 sm:p-2 md:p-2.5 rounded-t-[24px] sm:rounded-t-[42px] md:rounded-t-[50px] rounded-b-lg sm:rounded-b-2xl bg-gradient-to-b from-[#faf7f2]/95 via-[#f5ede0]/95 to-[#e8decb]/95 backdrop-blur-md border sm:border-2 border-[#d4af37] shadow-[0_6px_16px_rgba(26,58,77,0.2),0_0_12px_rgba(212,175,55,0.2)] w-[68px] sm:w-[110px] md:w-[136px] lg:w-[162px]">
                 {/* Top Royal Tag */}
-                <div className="mb-1 sm:mb-1.5 px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-[#1a3a4d] to-[#2c5f7c] text-[#f4e4a6] shadow-xs flex items-center gap-1">
-                  <Sparkles className="w-2.5 h-2.5 text-[#ffd166]" />
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                <div className="mb-0.5 sm:mb-1.5 px-1 sm:px-2 py-0.2 sm:py-0.5 rounded-full bg-gradient-to-r from-[#1a3a4d] to-[#2c5f7c] text-[#f4e4a6] shadow-xs flex items-center gap-0.5 sm:gap-1">
+                  <Sparkles className="w-2 sm:w-2.5 h-2 sm:h-2.5 text-[#ffd166]" />
+                  <span className="text-[6.5px] sm:text-[9px] md:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
                     {language === 'ur' ? 'دُولہا' : language === 'hi' ? 'दूल्हा' : 'GROOM'}
                   </span>
                 </div>
 
                 {/* Portrait Photo Container with Arch Frame */}
-                <div className="relative w-full aspect-[3/4] rounded-t-[24px] sm:rounded-t-[34px] md:rounded-t-[42px] rounded-b-md sm:rounded-b-lg overflow-hidden border border-[#d4af37]/70 shadow-inner bg-[#1a3a4d]/10">
+                <div className="relative w-full aspect-[3/4] rounded-t-[18px] sm:rounded-t-[34px] md:rounded-t-[42px] rounded-b-xs sm:rounded-b-lg overflow-hidden border border-[#d4af37]/70 shadow-inner bg-[#1a3a4d]/10">
                   <img
                     src={groomImageUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=85'}
                     alt={groomName}
@@ -225,61 +224,61 @@ export const DoorIntro: React.FC<DoorIntroProps> = ({
                 </div>
 
                 {/* Groom Name Label */}
-                <div className="mt-1 sm:mt-1.5 text-center w-full px-0.5">
-                  <h3 className={`text-[10px] sm:text-[12px] md:text-[13px] lg:text-[14px] font-bold text-[#1a3a4d] leading-tight truncate ${
+                <div className="mt-0.5 sm:mt-1.5 text-center w-full px-0.5">
+                  <h3 className={`text-[7.5px] sm:text-[12px] md:text-[13px] lg:text-[14px] font-bold text-[#1a3a4d] leading-tight truncate ${
                     language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : 'font-serif'
                   }`}>
                     {groomNameUr && language === 'ur' ? groomNameUr : groomNameHi && language === 'hi' ? groomNameHi : groomName}
                   </h3>
-                  <p className="text-[8px] sm:text-[9px] text-[#8c6d23] font-medium tracking-wide mt-0.5">
+                  <p className="text-[6.5px] sm:text-[9px] text-[#8c6d23] font-medium tracking-wide mt-0.5 hidden sm:block">
                     {language === 'ur' ? 'مبارک باد' : language === 'hi' ? 'शुभकामनाएं' : 'Mubarak Baad'}
                   </p>
                 </div>
 
                 {/* Ornate Gold Corner Pins */}
-                <div className="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-[#d4af37] shadow-xs" />
-                <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#d4af37] shadow-xs" />
+                <div className="absolute top-1 left-1 w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#d4af37] shadow-xs" />
+                <div className="absolute top-1 right-1 w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#d4af37] shadow-xs" />
               </div>
 
               {/* 5. Bottom Golden Royal Tassel (झूमर / लटकन) */}
               <div className="flex flex-col items-center -mt-0.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-b from-[#ffd166] to-[#b89125] border border-[#8c6d23] shadow-xs" />
-                <div className="w-0.5 h-2.5 bg-[#b89125]" />
-                <div className="w-3.5 h-5 rounded-b-full bg-gradient-to-b from-[#ffd166] via-[#d4af37] to-[#8c6d23] shadow-xs flex flex-col items-center justify-end pb-0.5">
-                  <div className="w-2 h-1 bg-[#4a3407]/40 rounded-full" />
+                <div className="w-1.5 sm:w-2.5 h-1.5 sm:h-2.5 rounded-full bg-gradient-to-b from-[#ffd166] to-[#b89125] border border-[#8c6d23] shadow-xs" />
+                <div className="w-0.5 h-1 sm:h-2.5 bg-[#b89125]" />
+                <div className="w-2.5 sm:w-3.5 h-3 sm:h-5 rounded-b-full bg-gradient-to-b from-[#ffd166] via-[#d4af37] to-[#8c6d23] shadow-xs flex flex-col items-center justify-end pb-0.5">
+                  <div className="w-1.5 sm:w-2 h-0.5 sm:h-1 bg-[#4a3407]/40 rounded-full" />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Bride Royal Portrait Hanging by Rope (Right of Gate - Tablet & Window View ONLY) */}
+          {/* Bride Royal Portrait Hanging by Rope (Right of Gate - Tablet & Window View ONLY, hidden on mobile) */}
           <div
             id="window-bride-box"
-            className={`absolute left-[calc(100%+28px)] sm:left-[calc(100%+40px)] md:left-[calc(100%+60px)] lg:left-[calc(100%+80px)] xl:left-[calc(100%+104px)] top-1/2 -translate-y-1/2 z-30 transition-all duration-700 pointer-events-auto select-none hidden sm:flex flex-col items-center ${
+            className={`absolute left-[calc(100%+16px)] sm:left-[calc(100%+24px)] md:left-[calc(100%+40px)] lg:left-[calc(100%+70px)] top-1/2 -translate-y-1/2 z-30 transition-all duration-700 pointer-events-auto select-none hidden sm:flex flex-col items-center ${
               isOpening ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'
             }`}
           >
             {/* Swaying Assembly - Pendulum swing from top rope anchor */}
-            <div className="animate-rope-sway-right origin-top flex flex-col items-center drop-shadow-[0_12px_24px_rgba(26,58,77,0.3)]">
-              {/* 1. Top Wall Hook / Brass Peg (दीवार की सुनहरी खूंटी) */}
+            <div className="animate-rope-sway-right origin-top flex flex-col items-center drop-shadow-[0_8px_18px_rgba(26,58,77,0.3)]">
+              {/* 1. Top Wall Hook / Brass Peg */}
               <div className="relative flex flex-col items-center z-20">
-                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#ffd166] via-[#d4af37] to-[#8c6d23] border border-[#5c430e] shadow-[0_2px_4px_rgba(0,0,0,0.4)] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#3d2c08] shadow-inner" />
+                <div className="w-3 sm:w-4 h-3 sm:h-4 rounded-full bg-gradient-to-br from-[#ffd166] via-[#d4af37] to-[#8c6d23] border border-[#5c430e] shadow-xs flex items-center justify-center">
+                  <div className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#3d2c08]" />
                 </div>
               </div>
 
-              {/* 2. Main Vertical Hanging Braided Rope (सुनहरी लटकी रस्सी) */}
-              <div className="w-1.5 h-10 md:h-14 lg:h-18 bg-gradient-to-b from-[#8c6d23] via-[#ffd166] to-[#b89125] shadow-xs relative overflow-hidden">
+              {/* 2. Main Vertical Hanging Braided Rope */}
+              <div className="w-1 sm:w-1.5 h-6 sm:h-10 md:h-14 lg:h-18 bg-gradient-to-b from-[#8c6d23] via-[#ffd166] to-[#b89125] shadow-xs relative overflow-hidden">
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(70,40,10,0.45)_2px,rgba(70,40,10,0.45)_4px)]" />
               </div>
 
               {/* 3. Golden Knotted Bead + Triangular Suspension Cords */}
               <div className="relative flex flex-col items-center z-20 -mt-0.5 w-full">
-                <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-b from-[#ffeaa7] via-[#ffd166] to-[#b89125] border border-[#7a5a15] shadow-sm flex items-center justify-center">
-                  <div className="w-1 h-1 rounded-full bg-[#4a3407]" />
+                <div className="w-2.5 sm:w-3.5 h-2.5 sm:h-3.5 rounded-full bg-gradient-to-b from-[#ffeaa7] via-[#ffd166] to-[#b89125] border border-[#7a5a15] shadow-xs flex items-center justify-center">
+                  <div className="w-0.5 sm:w-1 h-0.5 sm:h-1 rounded-full bg-[#4a3407]" />
                 </div>
                 {/* Suspension cord lines leading to left and right corners of frame */}
-                <svg className="w-24 sm:w-28 md:w-32 h-6 -mt-1 text-[#d4af37]" viewBox="0 0 100 24" fill="none">
+                <svg className="w-16 sm:w-24 md:w-30 h-4 sm:h-6 -mt-0.5 sm:-mt-1 text-[#d4af37]" viewBox="0 0 100 24" fill="none">
                   <line x1="50" y1="2" x2="10" y2="23" stroke="#8c6d23" strokeWidth="2.5" strokeLinecap="round" />
                   <line x1="50" y1="2" x2="90" y2="23" stroke="#8c6d23" strokeWidth="2.5" strokeLinecap="round" />
                   <line x1="50" y1="2" x2="10" y2="23" stroke="#ffd166" strokeWidth="1.2" strokeLinecap="round" />
@@ -290,17 +289,17 @@ export const DoorIntro: React.FC<DoorIntroProps> = ({
               </div>
 
               {/* 4. The Hanging Royal Frame */}
-              <div className="relative flex flex-col items-center p-1.5 sm:p-2 md:p-2.5 rounded-t-[32px] sm:rounded-t-[42px] md:rounded-t-[50px] rounded-b-xl sm:rounded-b-2xl bg-gradient-to-b from-[#faf7f2]/95 via-[#f5ede0]/95 to-[#e8decb]/95 backdrop-blur-md border-2 border-[#d4af37] shadow-[0_8px_20px_rgba(26,58,77,0.2),0_0_14px_rgba(212,175,55,0.22)] w-[96px] sm:w-[114px] md:w-[138px] lg:w-[166px]">
+              <div className="relative flex flex-col items-center p-1 sm:p-2 md:p-2.5 rounded-t-[24px] sm:rounded-t-[42px] md:rounded-t-[50px] rounded-b-lg sm:rounded-b-2xl bg-gradient-to-b from-[#faf7f2]/95 via-[#f5ede0]/95 to-[#e8decb]/95 backdrop-blur-md border sm:border-2 border-[#d4af37] shadow-[0_6px_16px_rgba(26,58,77,0.2),0_0_12px_rgba(212,175,55,0.2)] w-[68px] sm:w-[110px] md:w-[136px] lg:w-[162px]">
                 {/* Top Royal Tag */}
-                <div className="mb-1 sm:mb-1.5 px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-[#7a1e28] to-[#a82d3b] text-[#fbe3b5] shadow-xs flex items-center gap-1">
-                  <Heart className="w-2.5 h-2.5 text-[#ff4d6d] fill-[#ff4d6d]" />
-                  <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                <div className="mb-0.5 sm:mb-1.5 px-1 sm:px-2 py-0.2 sm:py-0.5 rounded-full bg-gradient-to-r from-[#7a1e28] to-[#a82d3b] text-[#fbe3b5] shadow-xs flex items-center gap-0.5 sm:gap-1">
+                  <Heart className="w-2 sm:w-2.5 h-2 sm:h-2.5 text-[#ff4d6d] fill-[#ff4d6d]" />
+                  <span className="text-[6.5px] sm:text-[9px] md:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
                     {language === 'ur' ? 'دُلہن' : language === 'hi' ? 'दुल्हन' : 'BRIDE'}
                   </span>
                 </div>
 
                 {/* Portrait Photo Container with Arch Frame */}
-                <div className="relative w-full aspect-[3/4] rounded-t-[24px] sm:rounded-t-[34px] md:rounded-t-[42px] rounded-b-md sm:rounded-b-lg overflow-hidden border border-[#d4af37]/70 shadow-inner bg-[#7a1e28]/10">
+                <div className="relative w-full aspect-[3/4] rounded-t-[18px] sm:rounded-t-[34px] md:rounded-t-[42px] rounded-b-xs sm:rounded-b-lg overflow-hidden border border-[#d4af37]/70 shadow-inner bg-[#7a1e28]/10">
                   <img
                     src={brideImageUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=85'}
                     alt={brideName}
@@ -312,32 +311,34 @@ export const DoorIntro: React.FC<DoorIntroProps> = ({
                 </div>
 
                 {/* Bride Name Label */}
-                <div className="mt-1 sm:mt-1.5 text-center w-full px-0.5">
-                  <h3 className={`text-[10px] sm:text-[12px] md:text-[13px] lg:text-[14px] font-bold text-[#1a3a4d] leading-tight truncate ${
+                <div className="mt-0.5 sm:mt-1.5 text-center w-full px-0.5">
+                  <h3 className={`text-[7.5px] sm:text-[12px] md:text-[13px] lg:text-[14px] font-bold text-[#1a3a4d] leading-tight truncate ${
                     language === 'ur' ? 'font-urdu' : language === 'hi' ? 'font-hindi' : 'font-serif'
                   }`}>
                     {brideNameUr && language === 'ur' ? brideNameUr : brideNameHi && language === 'hi' ? brideNameHi : brideName}
                   </h3>
-                  <p className="text-[8px] sm:text-[9px] text-[#8c6d23] font-medium tracking-wide mt-0.5">
-                    {language === 'ur' ? 'ماشاءاللہ' : language === 'hi' ? 'माशाअल्लाह' : 'MashAllah'}
+                  <p className="text-[6.5px] sm:text-[9px] text-[#8c6d23] font-medium tracking-wide mt-0.5 hidden sm:block">
+                    {language === 'ur' ? 'دعائیں و تمنائیں' : language === 'hi' ? 'दुआएं व शुभकामनाएं' : 'Best Wishes'}
                   </p>
                 </div>
 
                 {/* Ornate Gold Corner Pins */}
-                <div className="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-[#d4af37] shadow-xs" />
-                <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#d4af37] shadow-xs" />
+                <div className="absolute top-1 left-1 w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#d4af37] shadow-xs" />
+                <div className="absolute top-1 right-1 w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#d4af37] shadow-xs" />
               </div>
 
-              {/* 5. Bottom Golden Royal Tassel (झूमर / लटकन) */}
+              {/* 5. Bottom Golden Royal Tassel */}
               <div className="flex flex-col items-center -mt-0.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-b from-[#ffd166] to-[#b89125] border border-[#8c6d23] shadow-xs" />
-                <div className="w-0.5 h-2.5 bg-[#b89125]" />
-                <div className="w-3.5 h-5 rounded-b-full bg-gradient-to-b from-[#ffd166] via-[#d4af37] to-[#8c6d23] shadow-xs flex flex-col items-center justify-end pb-0.5">
-                  <div className="w-2 h-1 bg-[#4a3407]/40 rounded-full" />
+                <div className="w-1.5 sm:w-2.5 h-1.5 sm:h-2.5 rounded-full bg-gradient-to-b from-[#ffd166] to-[#b89125] border border-[#8c6d23] shadow-xs" />
+                <div className="w-0.5 h-1 sm:h-2.5 bg-[#b89125]" />
+                <div className="w-2.5 sm:w-3.5 h-3 sm:h-5 rounded-b-full bg-gradient-to-b from-[#ffd166] via-[#d4af37] to-[#8c6d23] shadow-xs flex flex-col items-center justify-end pb-0.5">
+                  <div className="w-1.5 sm:w-2 h-0.5 sm:h-1 bg-[#4a3407]/40 rounded-full" />
                 </div>
               </div>
             </div>
           </div>
+
+
 
 
           <div

@@ -21,7 +21,7 @@ import {
   getCloudWeddingData 
 } from './lib/firebase';
 import { OwnerAdminPanel } from './components/OwnerAdminPanel';
-// import { ScratchRevealCard } from './components/ScratchRevealCard';
+import { ScratchRevealCard } from './components/ScratchRevealCard';
 import { CelestialRainCanvas } from './components/CelestialRainCanvas';
 import { 
   Heart, 
@@ -35,7 +35,6 @@ import {
   MapPin,
   ChevronDown
 } from 'lucide-react';
-import { ScratchRevealCard } from './components/ScratchReavealCard';
 
 export default function App() {
   const [data, setData] = useState<WeddingData>(() => {
@@ -98,7 +97,7 @@ export default function App() {
             imageUrl: m.imageUrl || defaultWeddingData.groomFamily.members[idx]?.imageUrl
           }));
         }
-        if (!parsed.brideFamily || !parsed.brideFamily.members || !parsed.brideFamily.badgeImageUrl) {
+        if (!parsed.brideFamily || !parsed.brideFamily.members || !parsed.brideFamily.badgeImageUrl || parsed.brideFamily.members.length < defaultWeddingData.brideFamily.members.length) {
           parsed.brideFamily = defaultWeddingData.brideFamily;
         } else {
           // If existing members don't have imageUrl, populate default photo URLs
@@ -214,28 +213,24 @@ export default function App() {
     }));
   });
 
-  // Strict scroll lock: completely disable page scroll until Enter Celebration is clicked
+  // Scroll management: strictly lock body while the 3D door intro is active, and cleanly restore when celebration entered
   useEffect(() => {
     if (showDoorIntro) {
+      const scrollY = window.scrollY;
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
+      return () => {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+        document.body.style.touchAction = '';
+        window.scrollTo(0, scrollY);
+      };
     } else {
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.overflow = 'auto';
-      document.body.style.touchAction = 'auto';
-      document.body.style.position = 'static';
-      document.body.style.width = 'auto';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
     }
-    return () => {
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.overflow = 'auto';
-      document.body.style.touchAction = 'auto';
-      document.body.style.position = 'static';
-      document.body.style.width = 'auto';
-    };
   }, [showDoorIntro]);
 
   // Dynamically update browser favicon so changes from Admin Panel / Cloud persist live
