@@ -22,7 +22,7 @@ import {
 } from './lib/firebase';
 import { OwnerAdminPanel } from './components/OwnerAdminPanel';
 // import { ScratchRevealCard } from './components/ScratchRevealCard';
-// import { CelestialRainCanvas } from './components/CelestialRainCanvas';
+import { CelestialRainCanvas } from './components/CelestialRainCanvas';
 import { 
   Heart, 
   Share2, 
@@ -36,7 +36,6 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { ScratchRevealCard } from './components/ScratchReavealCard';
-import { CelestialRainCanvas } from './components/CelestialRainCanvas';
 
 export default function App() {
   const [data, setData] = useState<WeddingData>(() => {
@@ -202,7 +201,20 @@ export default function App() {
       (cloudData) => {
         if (cloudData && Object.keys(cloudData).length > 0) {
           setData((prev) => {
+            // cloudData takes top priority over prev and defaultWeddingData
             const merged = { ...defaultWeddingData, ...prev, ...cloudData };
+            // Ensure specific venue and text fields from cloudData are not lost
+            if (cloudData.venueNameEn) merged.venueNameEn = cloudData.venueNameEn;
+            if (cloudData.venueNameUr) merged.venueNameUr = cloudData.venueNameUr;
+            if (cloudData.venueNameHi) merged.venueNameHi = cloudData.venueNameHi;
+            if (cloudData.venueAddressEn) merged.venueAddressEn = cloudData.venueAddressEn;
+            if (cloudData.venueAddressUr) merged.venueAddressUr = cloudData.venueAddressUr;
+            if (cloudData.venueAddressHi) merged.venueAddressHi = cloudData.venueAddressHi;
+            if (cloudData.venueCityEn) merged.venueCityEn = cloudData.venueCityEn;
+            if (cloudData.venueCityUr) merged.venueCityUr = cloudData.venueCityUr;
+            if (cloudData.venueCityHi) merged.venueCityHi = cloudData.venueCityHi;
+            if (cloudData.mapEmbedUrl) merged.mapEmbedUrl = cloudData.mapEmbedUrl;
+            if (cloudData.mapDirectionsUrl) merged.mapDirectionsUrl = cloudData.mapDirectionsUrl;
             try {
               localStorage.setItem('wedding_invitation_data', JSON.stringify(merged));
             } catch {
@@ -210,16 +222,9 @@ export default function App() {
             }
             return merged;
           });
-        } else {
-          // If Firestore document doesn't exist yet and online, seed initial data to cloud
-          if (navigator.onLine) {
-            saveWeddingDataToCloud(data).catch(() => {});
-          }
         }
       },
       (error) => {
-        // When connection is temporarily unavailable or device is offline,
-        // gracefully rely on local storage / cached state without triggering failed write attempts
         console.warn('Operating in offline/cached mode for wedding invitation data:', error?.message);
       }
     );

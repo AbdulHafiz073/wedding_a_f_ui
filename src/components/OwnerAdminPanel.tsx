@@ -118,12 +118,12 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
-  // Sync with incoming data
+  // Sync with incoming data when the panel opens
   useEffect(() => {
     if (isOpen) {
       setFormData({ ...data });
     }
-  }, [isOpen, data]);
+  }, [isOpen]);
 
   // Subscribe to RSVPs for owner review
   useEffect(() => {
@@ -350,14 +350,16 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
     setIsSaving(true);
     setSaveSuccessMsg('');
     try {
-      await saveWeddingDataToCloud(formData);
+      // 1. Immediately inform parent and local storage with form state
       onSave(formData);
+      // 2. Persist to Firestore Cloud
+      await saveWeddingDataToCloud(formData);
       setSaveSuccessMsg('All changes synced to Cloud! All guests will now see this update.');
       setTimeout(() => setSaveSuccessMsg(''), 4000);
     } catch (err) {
       console.error(err);
       onSave(formData);
-      setSaveSuccessMsg('Saved locally (Offline mode).');
+      setSaveSuccessMsg('Saved locally in browser.');
       setTimeout(() => setSaveSuccessMsg(''), 4000);
     } finally {
       setIsSaving(false);
