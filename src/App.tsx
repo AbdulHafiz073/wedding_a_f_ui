@@ -21,7 +21,7 @@ import {
   getCloudWeddingData 
 } from './lib/firebase';
 import { OwnerAdminPanel } from './components/OwnerAdminPanel';
-// import { ScratchRevealCard } from './components/ScratchRevealCard';
+import { ScratchRevealCard } from './components/ScratchRevealCard';
 import { CelestialRainCanvas } from './components/CelestialRainCanvas';
 import { 
   Heart, 
@@ -35,7 +35,6 @@ import {
   MapPin,
   ChevronDown
 } from 'lucide-react';
-import { ScratchRevealCard } from './components/ScratchReavealCard';
 
 export default function App() {
   const [data, setData] = useState<WeddingData>(() => {
@@ -56,75 +55,15 @@ export default function App() {
           parsed.groomNameEn = defaultWeddingData.groomNameEn;
           parsed.groomNameUr = defaultWeddingData.groomNameUr;
         }
-        if (parsed.brideNameEn === 'Durefisha' || parsed.brideNameEn === 'Durefishan') {
-          parsed.brideNameEn = defaultWeddingData.brideNameEn;
-          parsed.brideNameUr = defaultWeddingData.brideNameUr;
-        }
-        // Automatically revert Kisan Farmhouse if stored
-        if (parsed.venueNameEn?.includes('Kisan') || parsed.mapDirectionsUrl?.includes('8kLTFfQ22pCQ9ky78') || parsed.mapEmbedUrl?.includes('28.9362984')) {
-          parsed.venueNameEn = defaultWeddingData.venueNameEn;
-          parsed.venueNameUr = defaultWeddingData.venueNameUr;
-          parsed.venueNameHi = defaultWeddingData.venueNameHi;
-          parsed.venueCityEn = defaultWeddingData.venueCityEn;
-          parsed.venueCityUr = defaultWeddingData.venueCityUr;
-          parsed.venueCityHi = defaultWeddingData.venueCityHi;
-          parsed.venueAddressEn = defaultWeddingData.venueAddressEn;
-          parsed.venueAddressUr = defaultWeddingData.venueAddressUr;
-          parsed.venueAddressHi = defaultWeddingData.venueAddressHi;
-          parsed.mapEmbedUrl = defaultWeddingData.mapEmbedUrl;
-          parsed.mapDirectionsUrl = defaultWeddingData.mapDirectionsUrl;
-          parsed.baraatLocationEn = defaultWeddingData.baraatLocationEn;
-          parsed.baraatLocationUr = defaultWeddingData.baraatLocationUr;
-          parsed.baraatLocationHi = defaultWeddingData.baraatLocationHi;
-          parsed.nikahLocationEn = defaultWeddingData.nikahLocationEn;
-          parsed.nikahLocationUr = defaultWeddingData.nikahLocationUr;
-          parsed.nikahLocationHi = defaultWeddingData.nikahLocationHi;
-          parsed.rukhsatiLocationEn = defaultWeddingData.rukhsatiLocationEn;
-          parsed.rukhsatiLocationUr = defaultWeddingData.rukhsatiLocationUr;
-          parsed.rukhsatiLocationHi = defaultWeddingData.rukhsatiLocationHi;
-          parsed.timelineEvents = defaultWeddingData.timelineEvents;
-        }
-        // Sync timeline events
-        if (!parsed.timelineEvents || parsed.timelineEvents.length < 6) {
-          parsed.timelineEvents = defaultWeddingData.timelineEvents;
-        }
-        // Sync family sections and ensure member photos & badges exist
         if (!parsed.groomFamily || !parsed.groomFamily.members || !parsed.groomFamily.badgeImageUrl) {
           parsed.groomFamily = defaultWeddingData.groomFamily;
-        } else {
-          // If existing members don't have imageUrl, populate default photo URLs
-          parsed.groomFamily.members = parsed.groomFamily.members.map((m: any, idx: number) => ({
-            ...m,
-            imageUrl: m.imageUrl || defaultWeddingData.groomFamily.members[idx]?.imageUrl
-          }));
         }
-        if (!parsed.brideFamily || !parsed.brideFamily.members || !parsed.brideFamily.badgeImageUrl || parsed.brideFamily.members.length < defaultWeddingData.brideFamily.members.length) {
+        if (!parsed.brideFamily || !parsed.brideFamily.members || !parsed.brideFamily.badgeImageUrl) {
           parsed.brideFamily = defaultWeddingData.brideFamily;
-        } else {
-          // If existing members don't have imageUrl, populate default photo URLs
-          parsed.brideFamily.members = parsed.brideFamily.members.map((m: any, idx: number) => ({
-            ...m,
-            imageUrl: m.imageUrl || defaultWeddingData.brideFamily.members[idx]?.imageUrl
-          }));
         }
-        // Sync videos
-        if (!parsed.jannatVideoUrl || parsed.jannatVideoUrl.includes('flower.mp4') || parsed.jannatVideoUrl.includes('oblaki_2') || parsed.jannatVideoUrl.includes('MINL6ki1lWU')) {
-          parsed.jannatVideoUrl = defaultWeddingData.jannatVideoUrl;
-        }
-        if (!parsed.haldiVideoUrl) parsed.haldiVideoUrl = defaultWeddingData.haldiVideoUrl;
-        if (!parsed.mehndiVideoUrl) parsed.mehndiVideoUrl = defaultWeddingData.mehndiVideoUrl;
-        if (!parsed.baraatVideoUrl) parsed.baraatVideoUrl = defaultWeddingData.baraatVideoUrl;
-        if (!parsed.nikahVideoUrl) parsed.nikahVideoUrl = defaultWeddingData.nikahVideoUrl;
-        if (!parsed.rukhsatiVideoUrl) parsed.rukhsatiVideoUrl = defaultWeddingData.rukhsatiVideoUrl;
-
-        if (!parsed.groomImageUrl) parsed.groomImageUrl = defaultWeddingData.groomImageUrl;
-        if (!parsed.brideImageUrl) parsed.brideImageUrl = defaultWeddingData.brideImageUrl;
-
-        if (!parsed.welcomeMessageEn || !parsed.welcomeMessageEn.includes('infinite mercy')) {
-          parsed.welcomeMessageEn = defaultWeddingData.welcomeMessageEn;
-        }
-        localStorage.setItem('wedding_invitation_data', JSON.stringify(parsed));
-        return { ...defaultWeddingData, ...parsed };
+        const merged = { ...defaultWeddingData, ...parsed };
+        localStorage.setItem('wedding_invitation_data', JSON.stringify(merged));
+        return merged;
       } catch {
         return defaultWeddingData;
       }
@@ -262,33 +201,6 @@ export default function App() {
         if (cloudData && Object.keys(cloudData).length > 0) {
           setData((prev) => {
             const merged = { ...defaultWeddingData, ...prev, ...cloudData };
-            // Ensure cloud data also reverts Kisan Farmhouse if it was stored
-            if (merged.venueNameEn?.includes('Kisan') || merged.mapDirectionsUrl?.includes('8kLTFfQ22pCQ9ky78') || merged.mapEmbedUrl?.includes('28.9362984')) {
-              merged.venueNameEn = defaultWeddingData.venueNameEn;
-              merged.venueNameUr = defaultWeddingData.venueNameUr;
-              merged.venueNameHi = defaultWeddingData.venueNameHi;
-              merged.venueCityEn = defaultWeddingData.venueCityEn;
-              merged.venueCityUr = defaultWeddingData.venueCityUr;
-              merged.venueCityHi = defaultWeddingData.venueCityHi;
-              merged.venueAddressEn = defaultWeddingData.venueAddressEn;
-              merged.venueAddressUr = defaultWeddingData.venueAddressUr;
-              merged.venueAddressHi = defaultWeddingData.venueAddressHi;
-              merged.mapEmbedUrl = defaultWeddingData.mapEmbedUrl;
-              merged.mapDirectionsUrl = defaultWeddingData.mapDirectionsUrl;
-              merged.baraatLocationEn = defaultWeddingData.baraatLocationEn;
-              merged.baraatLocationUr = defaultWeddingData.baraatLocationUr;
-              merged.baraatLocationHi = defaultWeddingData.baraatLocationHi;
-              merged.nikahLocationEn = defaultWeddingData.nikahLocationEn;
-              merged.nikahLocationUr = defaultWeddingData.nikahLocationUr;
-              merged.nikahLocationHi = defaultWeddingData.nikahLocationHi;
-              merged.rukhsatiLocationEn = defaultWeddingData.rukhsatiLocationEn;
-              merged.rukhsatiLocationUr = defaultWeddingData.rukhsatiLocationUr;
-              merged.rukhsatiLocationHi = defaultWeddingData.rukhsatiLocationHi;
-              merged.timelineEvents = defaultWeddingData.timelineEvents;
-              if (navigator.onLine) {
-                saveWeddingDataToCloud(merged).catch(() => {});
-              }
-            }
             try {
               localStorage.setItem('wedding_invitation_data', JSON.stringify(merged));
             } catch {

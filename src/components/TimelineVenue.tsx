@@ -7,7 +7,69 @@ interface TimelineVenueProps {
   data: WeddingData;
 }
 
+// Helper to generate a reliable Google Maps embed URL
+function resolveMapEmbedUrl(rawEmbedUrl?: string, directionsUrl?: string, venueName?: string, venueAddress?: string, venueCity?: string): string {
+  if (rawEmbedUrl && rawEmbedUrl.trim()) {
+    const trimmed = rawEmbedUrl.trim();
+    // If user pasted a full <iframe ... src="..." /> tag
+    if (trimmed.includes('<iframe') && trimmed.includes('src=')) {
+      const match = trimmed.match(/src=["']([^"']+)["']/);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    // If it is already a Google Maps embed URL or valid http URL
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      if (trimmed.includes('/maps/embed')) {
+        return trimmed;
+      }
+      // If it's a standard google map url with q=
+      const urlObj = new URL(trimmed, 'https://maps.google.com');
+      const q = urlObj.searchParams.get('q');
+      if (q) {
+        return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+      }
+    }
+  }
+
+  // If directionsUrl is available and has q=
+  if (directionsUrl && directionsUrl.trim()) {
+    try {
+      const urlObj = new URL(directionsUrl.trim(), 'https://maps.google.com');
+      const q = urlObj.searchParams.get('q');
+      if (q) {
+        return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Fallback: automatically construct an embed query from venue name and address
+  const query = [venueName, venueAddress, venueCity].filter(Boolean).join(', ');
+  if (query) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  }
+
+  return 'https://maps.google.com/maps?q=Burj+Al+Arab+Dubai&t=&z=15&ie=UTF8&iwloc=&output=embed';
+}
+
 export const TimelineVenue: React.FC<TimelineVenueProps> = ({ language, data }) => {
+  const venueDisplayName = language === 'ur' ? data.venueNameUr : language === 'hi' ? (data.venueNameHi || data.venueNameEn) : data.venueNameEn;
+  const venueDisplayAddress = language === 'ur' ? data.venueAddressUr : language === 'hi' ? (data.venueAddressHi || data.venueAddressEn) : data.venueAddressEn;
+  const venueDisplayCity = language === 'ur' ? data.venueCityUr : language === 'hi' ? (data.venueCityHi || data.venueCityEn) : data.venueCityEn;
+
+  const resolvedEmbedUrl = resolveMapEmbedUrl(
+    data.mapEmbedUrl,
+    data.mapDirectionsUrl,
+    data.venueNameEn || venueDisplayName,
+    data.venueAddressEn || venueDisplayAddress,
+    data.venueCityEn || venueDisplayCity
+  );
+
+  const resolvedDirectionsUrl = data.mapDirectionsUrl && data.mapDirectionsUrl.trim()
+    ? data.mapDirectionsUrl.trim()
+    : `https://maps.google.com/?q=${encodeURIComponent([venueDisplayName, venueDisplayAddress, venueDisplayCity].filter(Boolean).join(', '))}`;
   return (
     <div className="w-full max-w-lg mx-auto space-y-16">
       {/* 1. Venue & Map */}
@@ -26,17 +88,17 @@ export const TimelineVenue: React.FC<TimelineVenueProps> = ({ language, data }) 
 
         <div className="mt-6 bg-white/85 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-white/60 shadow-[0_6px_25px_rgba(44,95,124,0.08)]">
           <h3 className={`text-2xl font-bold text-[#1a3a4d] mb-0.5 ${language === 'hi' ? 'font-hindi' : 'font-display'}`}>
-            {language === 'ur' ? data.venueNameUr : language === 'hi' ? (data.venueNameHi || data.venueNameEn) : data.venueNameEn}
+            {venueDisplayName}
           </h3>
           <p className={`text-xs sm:text-sm text-[#777] mb-4 ${language === 'hi' ? 'font-hindi' : 'font-body'}`}>
-            {language === 'ur' ? data.venueAddressUr : language === 'hi' ? (data.venueAddressHi || data.venueAddressEn) : data.venueAddressEn} • {language === 'ur' ? data.venueCityUr : language === 'hi' ? (data.venueCityHi || data.venueCityEn) : data.venueCityEn}
+            {venueDisplayAddress} • {venueDisplayCity}
           </p>
 
           {/* Embedded Google Map */}
           <div className="w-full h-52 rounded-xl overflow-hidden shadow-inner border border-gray-100 relative bg-gray-100 mb-4">
             <iframe
               title="Wedding Venue Map"
-              src={data.mapEmbedUrl}
+              src={resolvedEmbedUrl}
               className="w-full h-full border-0"
               loading="lazy"
               allowFullScreen
@@ -46,7 +108,7 @@ export const TimelineVenue: React.FC<TimelineVenueProps> = ({ language, data }) 
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
             <a
-              href={data.mapDirectionsUrl}
+              href={resolvedDirectionsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#2c5f7c] to-[#4a8bb5] hover:from-[#1a3a4d] hover:to-[#2c5f7c] text-white text-xs font-display tracking-wider shadow-md transition-all active:scale-95"

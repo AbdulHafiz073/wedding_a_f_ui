@@ -2779,15 +2779,39 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-gray-300 mb-1">
-                        Google Maps Embed URL (for In-page Map Preview Iframe)
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-bold text-gray-300">
+                          Google Maps Embed URL or iframe code
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const query = [formData.venueNameEn, formData.venueAddressEn, formData.venueCityEn].filter(Boolean).join(', ');
+                            if (query) {
+                              const autoUrl = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                              const directUrl = `https://maps.google.com/?q=${encodeURIComponent(query)}`;
+                              setFormData({
+                                ...formData,
+                                mapEmbedUrl: autoUrl,
+                                mapDirectionsUrl: formData.mapDirectionsUrl || directUrl
+                              });
+                            }
+                          }}
+                          className="text-[11px] text-[#d4af37] hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          ⚡ Auto-Generate from Venue Name
+                        </button>
+                      </div>
                       <input
                         type="text"
+                        placeholder="Paste https://maps.google.com/... or iframe code or click Auto-Generate"
                         value={formData.mapEmbedUrl || ''}
                         onChange={(e) => setFormData({ ...formData, mapEmbedUrl: e.target.value })}
                         className="w-full px-3 py-2 bg-[#090f19] border border-white/20 rounded-xl text-white text-xs outline-none focus:border-[#d4af37]"
                       />
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        💡 Tip: Aap Google Maps link, pura iframe code ya seedhe Venue Name se Auto-Generate kar sakte hain. Changes save karne ke baad neeche <strong>"Save All Changes to Cloud"</strong> dabayein.
+                      </p>
                     </div>
                   </div>
                 </div>
