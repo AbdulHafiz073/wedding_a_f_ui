@@ -12,7 +12,8 @@ import {
   Sparkles,
   Link as LinkIcon,
   Check,
-  AlertCircle
+  AlertCircle,
+  RotateCcw
 } from 'lucide-react';
 import { Language } from '../types';
 import {
@@ -21,6 +22,7 @@ import {
   getCeremonyPhotos,
   addCeremonyPhoto,
   deleteCeremonyPhoto,
+  resetCeremonyPhotos,
   compressImageFile
 } from '../utils/ceremonyGalleryStorage';
 
@@ -51,13 +53,23 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = CEREMONY_THEMES[ceremonyId] || CEREMONY_THEMES.haldi;
 
-  // Load photos when modal opens or ceremonyId changes
+  // Load photos when modal opens or ceremonyId changes, and listen for updates
   useEffect(() => {
     if (isOpen) {
       const loaded = getCeremonyPhotos(ceremonyId);
       setPhotos(loaded);
       if (onPhotosUpdated) onPhotosUpdated(loaded.length);
     }
+
+    const handleUpdateEvent = (e: any) => {
+      if (e.detail?.ceremonyId === ceremonyId && Array.isArray(e.detail?.photos)) {
+        setPhotos(e.detail.photos);
+        if (onPhotosUpdated) onPhotosUpdated(e.detail.photos.length);
+      }
+    };
+
+    window.addEventListener('ceremonyPhotosUpdated', handleUpdateEvent);
+    return () => window.removeEventListener('ceremonyPhotosUpdated', handleUpdateEvent);
   }, [isOpen, ceremonyId, onPhotosUpdated]);
 
   // Handle escape key to close modal or lightbox
@@ -180,6 +192,18 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
     }
   };
 
+  // Reset photos back to original defaults
+  const handleReset = () => {
+    const updated = resetCeremonyPhotos(ceremonyId);
+    setPhotos(updated);
+    if (onPhotosUpdated) onPhotosUpdated(updated.length);
+    setStatusMessage({
+      type: 'success',
+      text: language === 'ur' ? 'اصلی تصاویر بحال کر دی گئیں' : language === 'hi' ? 'डिफ़ॉल्ट तस्वीरें बहाल कर दी गईं' : 'Default photos restored'
+    });
+    setTimeout(() => setStatusMessage(null), 3000);
+  };
+
   // Get caption in current language
   const getCaption = (photo: CeremonyPhoto) => {
     if (language === 'ur') return photo.captionUr || photo.captionEn;
@@ -271,6 +295,19 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
               <LinkIcon className="w-3 h-3" />
               <span className={language === 'hi' ? 'font-hindi' : ''}>
                 {language === 'ur' ? 'لنک سے شامل کریں' : language === 'hi' ? 'लिंक से जोड़ें' : 'Add by URL'}
+              </span>
+            </button>
+
+            {/* Reset to defaults */}
+            <button
+              type="button"
+              onClick={handleReset}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 transition-all cursor-pointer"
+              title={language === 'ur' ? 'اصلی تصاویر بحال کریں' : language === 'hi' ? 'डिफ़ॉल्ट तस्वीरें वापस लाएं' : 'Reset to default photos'}
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span className={`hidden sm:inline ${language === 'hi' ? 'font-hindi' : ''}`}>
+                {language === 'ur' ? 'ریسیٹ' : language === 'hi' ? 'रीसेट' : 'Reset'}
               </span>
             </button>
           </div>
@@ -372,16 +409,15 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
                         </span>
                       )}
 
-                      {photo.isCustom && (
-                        <button
-                          type="button"
-                          onClick={(e) => handleDelete(e, photo.id)}
-                          className="p-1 rounded-full bg-rose-600/90 text-white hover:bg-rose-700 transition-all cursor-pointer shadow-xs"
-                          title="Delete this photo"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      )}
+                      {/* Delete button for any photo (custom or preset) */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, photo.id)}
+                        className="p-1 rounded-full bg-rose-600/90 text-white hover:bg-rose-700 hover:scale-110 transition-all cursor-pointer shadow-xs"
+                        title={language === 'ur' ? 'تصویر ہٹائیں' : language === 'hi' ? 'तस्वीर हटाएं' : 'Delete photo'}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
                     </div>
 
                     {/* Bottom: Caption & Zoom Icon */}

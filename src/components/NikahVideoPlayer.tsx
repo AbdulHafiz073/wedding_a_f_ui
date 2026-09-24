@@ -28,8 +28,23 @@ export const NikahVideoPlayer: React.FC<NikahVideoPlayerProps> = ({
   const [activeSceneIdx, setActiveSceneIdx] = useState<number>(0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Send control commands to YouTube iframe API
+  const postIframeCommand = (func: string, args: unknown[] = []) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      try {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func, args }),
+          '*'
+        );
+      } catch (e) {
+        console.warn('Could not post message to iframe:', e);
+      }
+    }
+  };
 
   // Sync if prop changes
   useEffect(() => {
@@ -123,6 +138,14 @@ export const NikahVideoPlayer: React.FC<NikahVideoPlayerProps> = ({
         videoRef.current.play().catch(() => {});
         setIsPlaying(true);
       }
+    } else if (youtubeId) {
+      if (isPlaying) {
+        postIframeCommand('pauseVideo');
+        setIsPlaying(false);
+      } else {
+        postIframeCommand('playVideo');
+        setIsPlaying(true);
+      }
     } else {
       setIsPlaying(!isPlaying);
     }
@@ -130,11 +153,24 @@ export const NikahVideoPlayer: React.FC<NikahVideoPlayerProps> = ({
 
   // Toggle Mute
   const toggleMute = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    } else {
-      setIsMuted(!isMuted);
+      videoRef.current.muted = nextMuted;
+      if (!nextMuted) {
+        videoRef.current.volume = 1;
+      }
+    }
+
+    if (youtubeId) {
+      if (nextMuted) {
+        postIframeCommand('mute');
+      } else {
+        postIframeCommand('unMute');
+        postIframeCommand('setVolume', [100]);
+        postIframeCommand('playVideo');
+      }
     }
   };
 
@@ -339,7 +375,7 @@ export const NikahVideoPlayer: React.FC<NikahVideoPlayerProps> = ({
           <video
             ref={videoRef}
             src={videoSrc}
-            autoPlay
+            preload="metadata"
             loop
             muted={isMuted}
             playsInline
@@ -350,8 +386,11 @@ export const NikahVideoPlayer: React.FC<NikahVideoPlayerProps> = ({
         ) : videoSrc && youtubeId ? (
           /* CASE 2: YouTube Embed */
           <iframe
-            src={buildYoutubeEmbedUrl(youtubeId)}
+            ref={iframeRef}
+            key={youtubeId}
+            src={buildYoutubeEmbedUrl(youtubeId, 1, isMuted)}
             title="Nikah Ceremony Video"
+            loading="lazy"
             className="w-full h-full border-0 relative z-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen

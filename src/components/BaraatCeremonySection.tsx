@@ -47,6 +47,16 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
   const [photosCount, setPhotosCount] = useState<number>(() => getCeremonyPhotos('baraat').length);
 
+  useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (e.detail?.ceremonyId === 'baraat' && typeof e.detail?.count === 'number') {
+        setPhotosCount(e.detail.count);
+      }
+    };
+    window.addEventListener('ceremonyPhotosUpdated', handleUpdate);
+    return () => window.removeEventListener('ceremonyPhotosUpdated', handleUpdate);
+  }, []);
+
   // Background canvas simulation of royal stardust, festive sparks & golden embers
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -110,8 +120,9 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
       decay: number;
     }
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const sparkColors = ['#e11d48', '#d4af37', '#f59e0b', '#fbbf24', '#ffffff', '#be123c'];
-    const sparks: GoldSpark[] = Array.from({ length: 40 }, () => ({
+    const sparks: GoldSpark[] = Array.from({ length: isMobile ? 18 : 36 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       size: 1.5 + Math.random() * 2.5,
@@ -136,7 +147,7 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
     }
 
     const petalColors = ['#be123c', '#9f1239', '#e11d48', '#881337', '#f43f5e'];
-    const petals: WelcomePetal[] = Array.from({ length: 30 }, () => ({
+    const petals: WelcomePetal[] = Array.from({ length: isMobile ? 14 : 28 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       size: 7 + Math.random() * 9,
@@ -149,7 +160,20 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
     }));
 
     let time = 0;
-    const render = () => {
+    let lastFrameTime = performance.now();
+    const targetFpsInterval = 1000 / 35; // 35 FPS cap
+    let isVisible = false;
+
+    const render = (timestamp: number) => {
+      if (!isVisible) return;
+
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed < targetFpsInterval) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = timestamp - (elapsed % targetFpsInterval);
+
       time += 0.015;
       ctx.clearRect(0, 0, width, height);
 
@@ -229,12 +253,46 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
         ctx.restore();
       });
 
-      animId = requestAnimationFrame(render);
+      if (isVisible) {
+        animId = requestAnimationFrame(render);
+      }
     };
 
-    render();
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animId);
+      } else if (isVisible) {
+        lastFrameTime = performance.now();
+        cancelAnimationFrame(animId);
+        animId = requestAnimationFrame(render);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          lastFrameTime = performance.now();
+          cancelAnimationFrame(animId);
+          animId = requestAnimationFrame(render);
+        } else if (!isVisible) {
+          cancelAnimationFrame(animId);
+        }
+      },
+      { threshold: 0.05, rootMargin: '60px' }
+    );
+
+    if (canvas.parentElement) {
+      observer.observe(canvas.parentElement);
+    } else {
+      observer.observe(canvas);
+    }
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      observer.disconnect();
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animId);
     };

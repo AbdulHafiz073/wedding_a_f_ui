@@ -23,6 +23,7 @@ import {
 import { OwnerAdminPanel } from './components/OwnerAdminPanel';
 // import { ScratchRevealCard } from './components/ScratchRevealCard';
 import { CelestialRainCanvas } from './components/CelestialRainCanvas';
+import { saveCeremonyPhotos } from './utils/ceremonyGalleryStorage';
 import { 
   Heart, 
   Share2, 
@@ -217,6 +218,18 @@ export default function App() {
             if (cloudData.mapDirectionsUrl) merged.mapDirectionsUrl = cloudData.mapDirectionsUrl;
             if (cloudData.weddingCardImageUrl) merged.weddingCardImageUrl = cloudData.weddingCardImageUrl;
             if (cloudData.mamaKiShadiMessage) merged.mamaKiShadiMessage = cloudData.mamaKiShadiMessage;
+            if (cloudData.ceremonyPhotos && typeof cloudData.ceremonyPhotos === 'object') {
+              merged.ceremonyPhotos = cloudData.ceremonyPhotos;
+              try {
+                Object.entries(cloudData.ceremonyPhotos).forEach(([cId, pList]) => {
+                  if (Array.isArray(pList)) {
+                    saveCeremonyPhotos(cId, pList);
+                  }
+                });
+              } catch (e) {
+                console.warn('Error syncing cloud ceremony photos to local storage:', e);
+              }
+            }
             try {
               localStorage.setItem('wedding_invitation_data', JSON.stringify(merged));
             } catch {
@@ -489,7 +502,11 @@ export default function App() {
           className="min-h-screen w-full relative flex flex-col items-center justify-center text-center px-4 py-16 sm:py-20 overflow-hidden"
         >
           {/* Luminous Morning / Sunrise Pastel Sky with Floating Lanterns & Fairy Lights */}
-          <HeroVideoBackground videoUrl={data.jannatVideoUrl} language={language} />
+          <HeroVideoBackground
+            videoUrl={data.jannatVideoUrl}
+            language={language}
+            active={!showDoorIntro}
+          />
 
           {/* Optional Petal Rain overlay when user clicks "Shower Petals 🌸" */}
           {isShowerActive && (

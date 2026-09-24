@@ -47,6 +47,16 @@ export const MehndiCeremonySection: React.FC<MehndiCeremonySectionProps> = ({
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
   const [photosCount, setPhotosCount] = useState<number>(() => getCeremonyPhotos('mehndi').length);
 
+  useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (e.detail?.ceremonyId === 'mehndi' && typeof e.detail?.count === 'number') {
+        setPhotosCount(e.detail.count);
+      }
+    };
+    window.addEventListener('ceremonyPhotosUpdated', handleUpdate);
+    return () => window.removeEventListener('ceremonyPhotosUpdated', handleUpdate);
+  }, []);
+
   // Background canvas simulation of gentle swirling henna leaves, golden pollen & soft green aura
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -112,8 +122,9 @@ export const MehndiCeremonySection: React.FC<MehndiCeremonySectionProps> = ({
       swayOffset: number;
     }
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const leafColors = ['#059669', '#10b981', '#34d399', '#047857', '#d97706', '#f59e0b'];
-    const leaves: HennaLeaf[] = Array.from({ length: 36 }, () => ({
+    const leaves: HennaLeaf[] = Array.from({ length: isMobile ? 16 : 32 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       size: 7 + Math.random() * 10,
@@ -137,7 +148,7 @@ export const MehndiCeremonySection: React.FC<MehndiCeremonySectionProps> = ({
     }
 
     const pollenColors = ['#10b981', '#fbbf24', '#fde68a', '#34d399', '#ffffff'];
-    const pollens: ShimmerPollen[] = Array.from({ length: 45 }, () => ({
+    const pollens: ShimmerPollen[] = Array.from({ length: isMobile ? 18 : 36 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       radius: 1 + Math.random() * 2,
@@ -147,7 +158,20 @@ export const MehndiCeremonySection: React.FC<MehndiCeremonySectionProps> = ({
     }));
 
     let time = 0;
-    const render = () => {
+    let lastFrameTime = performance.now();
+    const targetFpsInterval = 1000 / 35; // 35 FPS cap
+    let isVisible = false;
+
+    const render = (timestamp: number) => {
+      if (!isVisible) return;
+
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed < targetFpsInterval) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = timestamp - (elapsed % targetFpsInterval);
+
       time += 0.015;
       ctx.clearRect(0, 0, width, height);
 
@@ -222,12 +246,46 @@ export const MehndiCeremonySection: React.FC<MehndiCeremonySectionProps> = ({
         ctx.restore();
       });
 
-      animId = requestAnimationFrame(render);
+      if (isVisible) {
+        animId = requestAnimationFrame(render);
+      }
     };
 
-    render();
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animId);
+      } else if (isVisible) {
+        lastFrameTime = performance.now();
+        cancelAnimationFrame(animId);
+        animId = requestAnimationFrame(render);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          lastFrameTime = performance.now();
+          cancelAnimationFrame(animId);
+          animId = requestAnimationFrame(render);
+        } else if (!isVisible) {
+          cancelAnimationFrame(animId);
+        }
+      },
+      { threshold: 0.05, rootMargin: '60px' }
+    );
+
+    if (canvas.parentElement) {
+      observer.observe(canvas.parentElement);
+    } else {
+      observer.observe(canvas);
+    }
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      observer.disconnect();
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animId);
     };

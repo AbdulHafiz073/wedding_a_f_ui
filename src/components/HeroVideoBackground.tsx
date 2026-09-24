@@ -6,11 +6,13 @@ interface HeroVideoBackgroundProps {
   videoUrl?: string;
   className?: string;
   language?: Language;
+  active?: boolean;
 }
 
 export const HeroVideoBackground: React.FC<HeroVideoBackgroundProps> = ({
   className = '',
-  language = 'en'
+  language = 'en',
+  active = true
 }) => {
   return (
     <div
@@ -19,7 +21,7 @@ export const HeroVideoBackground: React.FC<HeroVideoBackgroundProps> = ({
     >
       {/* 1. Magnificent Glowing Sky Lanterns Animation (Rising sea of warm amber lanterns, sparks & night sky) */}
       <div className="absolute inset-0 w-full h-full" style={{ width: '100%', height: '100%' }}>
-        <SkyLanternsAnimation language={language} />
+        <SkyLanternsAnimation language={language} active={active} />
       </div>
 
       {/* 2. Atmospheric Luminous Rose-Peach & Warm Amber Ambient Glow */}

@@ -90,6 +90,16 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
   const [photosCount, setPhotosCount] = useState<number>(() => getCeremonyPhotos('rukhsati').length);
 
+  useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (e.detail?.ceremonyId === 'rukhsati' && typeof e.detail?.count === 'number') {
+        setPhotosCount(e.detail.count);
+      }
+    };
+    window.addEventListener('ceremonyPhotosUpdated', handleUpdate);
+    return () => window.removeEventListener('ceremonyPhotosUpdated', handleUpdate);
+  }, []);
+
   // Sound generator for realistic firework thump & crackle using Web Audio API
   const playFireworkSound = useCallback((pitch = 1, force = false) => {
     if (isMuted && !force) return;
@@ -243,12 +253,12 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
       speedY: number;
     }
 
-    const pearls: FloatingPearl[] = Array.from({ length: 32 }, () => ({
+    const pearls: FloatingPearl[] = Array.from({ length: 14 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      radius: 2 + Math.random() * 3.5,
-      alpha: 0.35 + Math.random() * 0.5,
-      speedY: -0.3 - Math.random() * 0.6
+      radius: 2 + Math.random() * 3,
+      alpha: 0.35 + Math.random() * 0.4,
+      speedY: -0.3 - Math.random() * 0.5
     }));
 
     // 3. Falling Blush Pink & White Rose Petals (Existing Animation Preserved)
@@ -265,15 +275,15 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
     }
 
     const petalColors = ['#f472b6', '#fb7185', '#fda4af', '#fecdd3', '#ffffff'];
-    const petals: SoftPetal[] = Array.from({ length: 30 }, () => ({
+    const petals: SoftPetal[] = Array.from({ length: 14 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      size: 7 + Math.random() * 9,
+      size: 6 + Math.random() * 7,
       color: petalColors[Math.floor(Math.random() * petalColors.length)],
-      speedY: 0.8 + Math.random() * 1.4,
+      speedY: 0.8 + Math.random() * 1.2,
       rotation: Math.random() * Math.PI * 2,
       rotSpeed: (Math.random() - 0.5) * 0.04,
-      swaySpeed: 1 + Math.random() * 2,
+      swaySpeed: 1 + Math.random() * 1.6,
       swayOffset: Math.random() * Math.PI * 2
     }));
 
@@ -367,19 +377,43 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
       alpha: 0.6 + Math.random() * 0.35
     }));
 
-    // Trigger initial rocket burst
-    spawnRocket();
-    const rocketInterval = setInterval(() => {
-      if (burstsTriggered < maxBurstsPerWave) {
-        spawnRocket();
-        if (burstsTriggered > 3 && Math.random() > 0.35) {
-          setTimeout(() => spawnRocket(), 160);
+    let isVisible = false;
+    let rocketInterval: NodeJS.Timeout | null = null;
+
+    const startRocketInterval = () => {
+      if (rocketInterval) clearInterval(rocketInterval);
+      spawnRocket();
+      rocketInterval = setInterval(() => {
+        if (burstsTriggered < maxBurstsPerWave) {
+          spawnRocket();
+          if (burstsTriggered > 3 && Math.random() > 0.35) {
+            setTimeout(() => spawnRocket(), 160);
+          }
         }
+      }, 420);
+    };
+
+    const stopRocketInterval = () => {
+      if (rocketInterval) {
+        clearInterval(rocketInterval);
+        rocketInterval = null;
       }
-    }, 420);
+    };
 
     let time = 0;
-    const render = () => {
+    let lastFrameTime = performance.now();
+    const targetFpsInterval = 1000 / 35; // 35 FPS cap
+
+    const render = (timestamp: number) => {
+      if (!isVisible) return;
+
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed < targetFpsInterval) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = timestamp - (elapsed % targetFpsInterval);
+
       time += 0.015;
       ctx.clearRect(0, 0, width, height);
 
@@ -422,8 +456,6 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
         ctx.save();
         ctx.globalAlpha = p.alpha;
         ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = '#fbcfe8';
-        ctx.shadowBlur = 8;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -545,13 +577,51 @@ export const RukhsatiCeremonySection: React.FC<RukhsatiCeremonySectionProps> = (
         ctx.restore();
       });
 
-      animId = requestAnimationFrame(render);
+      if (isVisible) {
+        animId = requestAnimationFrame(render);
+      }
     };
 
-    render();
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopRocketInterval();
+        cancelAnimationFrame(animId);
+      } else if (isVisible) {
+        lastFrameTime = performance.now();
+        startRocketInterval();
+        cancelAnimationFrame(animId);
+        animId = requestAnimationFrame(render);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          lastFrameTime = performance.now();
+          startRocketInterval();
+          cancelAnimationFrame(animId);
+          animId = requestAnimationFrame(render);
+        } else if (!isVisible) {
+          stopRocketInterval();
+          cancelAnimationFrame(animId);
+        }
+      },
+      { threshold: 0.05, rootMargin: '60px' }
+    );
+
+    if (canvas.parentElement) {
+      observer.observe(canvas.parentElement);
+    } else {
+      observer.observe(canvas);
+    }
 
     return () => {
-      clearInterval(rocketInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      observer.disconnect();
+      stopRocketInterval();
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animId);
     };

@@ -487,6 +487,50 @@ export const FamilySection: React.FC<FamilySectionProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Special Kids / Little Angels Invitation Card (میرے ماموں کی شادی میں ضرور آنا) */}
+        {(data.mamaKiShadiMessage || 'Mere Mama Ki shadi me Jroor Jaroor Ana :- Daniyal ,Hammad Raza, Tasmiya, Anam, Aslihan, Zunera') && (
+          <div className="mt-8 max-w-2xl mx-auto w-full px-2">
+            <div className="relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-2 border-[#d4af37]/60 shadow-[0_10px_30px_rgba(212,175,55,0.18)] text-center transition-transform hover:scale-[1.01]">
+              {/* Corner decorative ribbons / motifs */}
+              <div className="absolute -top-6 -left-6 w-16 h-16 bg-amber-400/20 rounded-full blur-md pointer-events-none" />
+              <div className="absolute -bottom-6 -right-6 w-16 h-16 bg-rose-400/20 rounded-full blur-md pointer-events-none" />
+              
+              {/* Header Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-100 to-rose-100 border border-amber-300/80 text-amber-900 text-xs font-bold mb-3 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-spin" style={{ animationDuration: '8s' }} />
+                <span>
+                  {language === 'ur'
+                    ? '✨ ننھے فرشتوں کی طرف سے پرخلوص دعوت ✨'
+                    : language === 'hi'
+                    ? '✨ नन्हे बच्चों की ओर से प्यार भरा न्योता ✨'
+                    : '✨ Special Sweet Invitation from the Little Ones ✨'}
+                </span>
+                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+              </div>
+
+              {/* Main Kids Message */}
+              <div className="relative z-10">
+                <p className="text-base sm:text-lg md:text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-900 via-rose-900 to-amber-800 leading-snug tracking-wide drop-shadow-xs">
+                  "{data.mamaKiShadiMessage || 'Mere Mama Ki shadi me Jroor Jaroor Ana :- Daniyal ,Hammad Raza, Tasmiya, Anam, Aslihan, Zunera'}"
+                </p>
+                <div className="flex items-center justify-center gap-2 mt-2.5 text-xs font-semibold text-rose-800/80">
+                  <span>🧸</span>
+                  <span>🎈</span>
+                  <span className="italic">
+                    {language === 'ur'
+                      ? 'ہم سب آپ کے پرتپاک استقبال کے لیے بے تاب ہیں!'
+                      : language === 'hi'
+                      ? 'हम सब आपके स्वागत के लिए पलकें बिछाए बैठे हैं!'
+                      : 'Eagerly waiting to welcome you all!'}
+                  </span>
+                  <span>🎈</span>
+                  <span>🧸</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -84,8 +84,8 @@ export const DiwaliLights: React.FC<DiwaliLightsProps> = ({
     const rawPatternLeft = [105, 210, 80, 255, 125, 195, 75, 235, 115, 175, 90];
     const rawPatternRight = [90, 175, 115, 235, 75, 195, 125, 255, 80, 210, 105];
 
-    // Spacing between hanging strings (in px)
-    const spacing = isMobile ? 22 : isTablet ? 34 : 40;
+    // Spacing between hanging strings (in px) - optimized to keep phone & laptop cool
+    const spacing = isMobile ? 38 : isTablet ? 42 : 48;
 
     // 1. Generate Left Strings (from left edge to gateLeftBoundary)
     const leftList: StringDrop[] = [];
@@ -99,8 +99,8 @@ export const DiwaliLights: React.FC<DiwaliLightsProps> = ({
       const totalH = Math.round(baseH * heightMultiplier);
       const colorObj = bulbColors[i % bulbColors.length];
       const animClass = `animate-diwali-twinkle-${(i % 4) + 1}`;
-      // Strings > 110px get 2 or 3 intermediate glowing micro-beads along the wire
-      const bulbCount = totalH > 180 ? 3 : totalH > 100 ? 2 : 1;
+      // Lightweight single or double bulb per string
+      const bulbCount = totalH > 200 ? 2 : 1;
 
       leftList.push({
         id: `left-${i}`,
@@ -125,7 +125,7 @@ export const DiwaliLights: React.FC<DiwaliLightsProps> = ({
       const totalH = Math.round(baseH * heightMultiplier);
       const colorObj = bulbColors[(i + 3) % bulbColors.length];
       const animClass = `animate-diwali-twinkle-${((i + 2) % 4) + 1}`;
-      const bulbCount = totalH > 180 ? 3 : totalH > 100 ? 2 : 1;
+      const bulbCount = totalH > 200 ? 2 : 1;
 
       rightList.push({
         id: `right-${i}`,

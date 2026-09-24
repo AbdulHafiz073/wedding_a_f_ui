@@ -232,26 +232,22 @@ body {
   animation: fadeInScene 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Diwali Lights & Festive Garland Keyframes */
+/* Diwali Lights & Festive Garland Keyframes - Compositor-optimized (Zero continuous blur filter repainting) */
 @keyframes diwaliTwinkle {
   0%, 100% {
     opacity: 0.95;
-    filter: drop-shadow(0 0 7px currentColor) brightness(1.15);
     transform: scale(1);
   }
-  30% {
-    opacity: 0.45;
-    filter: drop-shadow(0 0 2px currentColor) brightness(0.75);
-    transform: scale(0.92);
+  35% {
+    opacity: 0.55;
+    transform: scale(0.94);
   }
-  60% {
+  65% {
     opacity: 1;
-    filter: drop-shadow(0 0 12px currentColor) brightness(1.35);
-    transform: scale(1.08);
+    transform: scale(1.05);
   }
-  80% {
-    opacity: 0.7;
-    filter: drop-shadow(0 0 4px currentColor) brightness(0.9);
+  85% {
+    opacity: 0.75;
     transform: scale(0.98);
   }
 }

@@ -28,8 +28,23 @@ export const BaraatVideoPlayer: React.FC<BaraatVideoPlayerProps> = ({
   const [activeSceneIdx, setActiveSceneIdx] = useState<number>(0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Send control commands to YouTube iframe API
+  const postIframeCommand = (func: string, args: unknown[] = []) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      try {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func, args }),
+          '*'
+        );
+      } catch (e) {
+        console.warn('Could not post message to iframe:', e);
+      }
+    }
+  };
 
   // Sync if prop changes
   useEffect(() => {
@@ -126,20 +141,47 @@ export const BaraatVideoPlayer: React.FC<BaraatVideoPlayerProps> = ({
   };
 
   const togglePlay = () => {
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
-      setIsPlaying(false);
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        videoRef.current.play().catch(() => {});
+        setIsPlaying(true);
+      }
+    } else if (youtubeId) {
+      if (isPlaying) {
+        postIframeCommand('pauseVideo');
+        setIsPlaying(false);
+      } else {
+        postIframeCommand('playVideo');
+        setIsPlaying(true);
+      }
     } else {
-      videoRef.current.play();
-      setIsPlaying(true);
+      setIsPlaying(!isPlaying);
     }
   };
 
   const toggleMute = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+
+    if (videoRef.current) {
+      videoRef.current.muted = nextMuted;
+      if (!nextMuted) {
+        videoRef.current.volume = 1;
+      }
+    }
+
+    if (youtubeId) {
+      if (nextMuted) {
+        postIframeCommand('mute');
+      } else {
+        postIframeCommand('unMute');
+        postIframeCommand('setVolume', [100]);
+        postIframeCommand('playVideo');
+      }
+    }
   };
 
   const toggleFullscreen = () => {
@@ -171,7 +213,7 @@ export const BaraatVideoPlayer: React.FC<BaraatVideoPlayerProps> = ({
       icon: '🎺'
     },
     {
-      titleEn: 'Grand Welcome at Burj Al Arab',
+      titleEn: 'Grand Welcome at Burj Al Arab Gate',
       titleUr: 'برج العرب گرینڈ گیٹ پر والہانہ استقبال',
       titleHi: 'बुर्ज अल अरब पर भव्य शाही इस्तकबाल',
       taglineEn: 'Rose water sprinkling and flower showers for the groom',
@@ -289,7 +331,7 @@ export const BaraatVideoPlayer: React.FC<BaraatVideoPlayerProps> = ({
             src={videoSrc}
             playsInline
             loop
-            autoPlay
+            preload="metadata"
             muted={isMuted}
             className="w-full h-full object-cover object-center relative z-0"
             onPlay={() => setIsPlaying(true)}
@@ -297,9 +339,11 @@ export const BaraatVideoPlayer: React.FC<BaraatVideoPlayerProps> = ({
           />
         ) : videoSrc && youtubeId ? (
           <iframe
+            ref={iframeRef}
             key={youtubeId}
-            src={buildYoutubeEmbedUrl(youtubeId)}
+            src={buildYoutubeEmbedUrl(youtubeId, 1, isMuted)}
             title="Baraat Ceremony Video"
+            loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             className="w-full h-full border-0 pointer-events-auto relative z-0"
           />

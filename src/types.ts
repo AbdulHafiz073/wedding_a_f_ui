@@ -56,6 +56,16 @@ export interface FamilySide {
   members: FamilyMember[];
 }
 
+export interface CeremonyPhoto {
+  id: string;
+  url: string;
+  captionEn: string;
+  captionUr: string;
+  captionHi?: string;
+  isCustom?: boolean;
+  dateAdded?: string;
+}
+
 export interface WeddingData {
   groomNameEn: string;
   groomNameUr: string;
@@ -179,4 +189,5 @@ export interface WeddingData {
   mamaKiShadiMessage?: string; // Special kids invitation card line (e.g. Mere Mama Ki shadi me Jroor Jaroor Ana...)
   customFaviconUrl?: string;
   adminPin?: string;
+  ceremonyPhotos?: Record<string, CeremonyPhoto[]>;
 }

@@ -96,8 +96,10 @@ export const RoseLeavesRain: React.FC<RoseLeavesRainProps> = ({
       };
     };
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const actualCount = isMobile ? Math.min(count, 22) : Math.min(count, 45);
     const particles: PetalOrLeaf[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < actualCount; i++) {
       particles.push(createParticle());
     }
 
@@ -114,11 +116,6 @@ export const RoseLeavesRain: React.FC<RoseLeavesRainProps> = ({
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rotZ);
       ctx.scale(scaleX, scaleY);
-
-      // Subtle shadow for realistic floating depth
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-      ctx.shadowBlur = 6;
-      ctx.shadowOffsetY = 4;
 
       ctx.beginPath();
       // Natural organic heart/teardrop curved petal shape
@@ -224,15 +221,24 @@ export const RoseLeavesRain: React.FC<RoseLeavesRainProps> = ({
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(235, 185, 75, ' + p.opacity + ')';
-      ctx.shadowColor = 'rgba(245, 205, 105, 0.7)';
-      ctx.shadowBlur = 8;
       ctx.fill();
       ctx.restore();
     };
 
     let time = 0;
+    let lastFrameTime = performance.now();
+    const targetFpsInterval = 1000 / 35; // 35 FPS cap
 
-    const render = () => {
+    const render = (timestamp: number) => {
+      if (!isVisible) return;
+
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed < targetFpsInterval) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = timestamp - (elapsed % targetFpsInterval);
+
       time += 0.02;
       ctx.clearRect(0, 0, width, height);
 
@@ -276,10 +282,44 @@ export const RoseLeavesRain: React.FC<RoseLeavesRainProps> = ({
         if (p.x > width + 40) p.x = -30;
       }
 
-      animationFrameId = requestAnimationFrame(render);
+      if (isVisible) {
+        animationFrameId = requestAnimationFrame(render);
+      }
     };
 
-    render();
+    let isVisible = false;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animationFrameId);
+      } else if (isVisible) {
+        lastFrameTime = performance.now();
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(render);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          lastFrameTime = performance.now();
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = requestAnimationFrame(render);
+        } else if (!isVisible) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      },
+      { threshold: 0.05, rootMargin: '60px' }
+    );
+
+    if (canvas.parentElement) {
+      intersectionObserver.observe(canvas.parentElement);
+    } else {
+      intersectionObserver.observe(canvas);
+    }
 
     // Optional click handler to shower petals
     const handleCanvasClick = (e: MouseEvent) => {
@@ -288,14 +328,14 @@ export const RoseLeavesRain: React.FC<RoseLeavesRainProps> = ({
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
 
-      // Add a burst of 10 petals and leaves at click position
-      for (let k = 0; k < 10; k++) {
+      // Add a burst of 6 petals at click position
+      for (let k = 0; k < 6; k++) {
         const fresh = createParticle(clickY + (Math.random() - 0.5) * 40);
         fresh.x = clickX + (Math.random() - 0.5) * 60;
         fresh.speedY = Math.random() * 2 + 1;
         fresh.speedX = (Math.random() - 0.5) * 2;
         particles.push(fresh);
-        if (particles.length > count + 20) {
+        if (particles.length > actualCount + 12) {
           particles.shift();
         }
       }
@@ -306,6 +346,8 @@ export const RoseLeavesRain: React.FC<RoseLeavesRainProps> = ({
     }
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      intersectionObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
       if (interactive) {

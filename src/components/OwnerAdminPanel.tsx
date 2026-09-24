@@ -28,10 +28,24 @@ import {
   Image as ImageIcon,
   DoorOpen,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  RotateCcw
 } from 'lucide-react';
 import { WeddingData, Language, FamilyMember, RsvpData } from '../types';
 import { subscribeToCloudRsvps, saveWeddingDataToCloud } from '../lib/firebase';
+import {
+  CeremonyPhoto,
+  ALL_CEREMONY_IDS,
+  CeremonyKey,
+  CEREMONY_THEMES,
+  getCeremonyPhotos,
+  saveCeremonyPhotos,
+  addCeremonyPhoto,
+  deleteCeremonyPhoto,
+  resetCeremonyPhotos,
+  getAllCeremonyPhotosDictionary,
+  compressImageFile as compressCeremonyImageFile
+} from '../utils/ceremonyGalleryStorage';
 
 interface OwnerAdminPanelProps {
   isOpen: boolean;
@@ -41,7 +55,7 @@ interface OwnerAdminPanelProps {
   language: Language;
 }
 
-type AdminTab = 'names' | 'videos' | 'family' | 'datetime' | 'location' | 'rsvps' | 'security';
+type AdminTab = 'names' | 'ceremony-photos' | 'videos' | 'family' | 'datetime' | 'location' | 'rsvps' | 'security';
 
 export const ROYAL_GATE_PRESETS = [
   {
@@ -115,10 +129,21 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
-  // Sync with incoming data when the panel opens
+  // Ceremony Photos State for Admin Panel
+  const [selectedCeremonyFilter, setSelectedCeremonyFilter] = useState<CeremonyKey | 'all'>('all');
+  const [ceremonyPhotosMap, setCeremonyPhotosMap] = useState<Record<string, CeremonyPhoto[]>>(() => getAllCeremonyPhotosDictionary());
+  const [ceremonyPhotoUrlInput, setCeremonyPhotoUrlInput] = useState('');
+  const [ceremonyPhotoCaptionEn, setCeremonyPhotoCaptionEn] = useState('');
+  const [ceremonyPhotoCaptionUr, setCeremonyPhotoCaptionUr] = useState('');
+  const [ceremonyPhotoCaptionHi, setCeremonyPhotoCaptionHi] = useState('');
+  const [targetAddCeremony, setTargetAddCeremony] = useState<CeremonyKey>('haldi');
+  const [uploadingCeremonyTarget, setUploadingCeremonyTarget] = useState<CeremonyKey | null>(null);
+
+  // Sync with incoming data and ceremony photos when the panel opens
   useEffect(() => {
     if (isOpen) {
       setFormData({ ...data });
+      setCeremonyPhotosMap(getAllCeremonyPhotosDictionary());
     }
   }, [isOpen]);
 
@@ -355,20 +380,97 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
     }
   };
 
+  // Ceremony Photo Handlers for Admin Panel
+  const handleAddCeremonyPhotoUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ceremonyPhotoUrlInput.trim()) return;
+    const theme = CEREMONY_THEMES[targetAddCeremony];
+    const newPhoto: CeremonyPhoto = {
+      id: `${targetAddCeremony}-${Date.now()}`,
+      url: ceremonyPhotoUrlInput.trim(),
+      captionEn: ceremonyPhotoCaptionEn.trim() || `${theme.tagEn} Photo`,
+      captionUr: ceremonyPhotoCaptionUr.trim() || `${theme.tagUr} کی تصویر`,
+      captionHi: ceremonyPhotoCaptionHi.trim() || `${theme.tagHi} की तस्वीर`,
+      isCustom: true,
+      dateAdded: new Date().toLocaleDateString()
+    };
+    const updated = addCeremonyPhoto(targetAddCeremony, newPhoto);
+    setCeremonyPhotosMap(prev => ({ ...prev, [targetAddCeremony]: updated }));
+    setCeremonyPhotoUrlInput('');
+    setCeremonyPhotoCaptionEn('');
+    setCeremonyPhotoCaptionUr('');
+    setCeremonyPhotoCaptionHi('');
+    setSaveSuccessMsg(`Photo added to ${theme.tagEn}! Click "Save All Changes to Cloud" to sync.`);
+    setTimeout(() => setSaveSuccessMsg(''), 4000);
+  };
+
+  const handleCeremonyFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, ceremonyId: CeremonyKey) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingCeremonyTarget(ceremonyId);
+    try {
+      let currentPhotos = getCeremonyPhotos(ceremonyId);
+      const theme = CEREMONY_THEMES[ceremonyId];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) continue;
+        const base64 = await compressCeremonyImageFile(file);
+        const newPhoto: CeremonyPhoto = {
+          id: `${ceremonyId}-${Date.now()}-${i}`,
+          url: base64,
+          captionEn: file.name.replace(/\.[^/.]+$/, '') || `${theme.tagEn} Photo`,
+          captionUr: `${theme.tagUr} کی تصویر`,
+          captionHi: `${theme.tagHi} की तस्वीर`,
+          isCustom: true,
+          dateAdded: new Date().toLocaleDateString()
+        };
+        currentPhotos = addCeremonyPhoto(ceremonyId, newPhoto);
+      }
+      setCeremonyPhotosMap(prev => ({ ...prev, [ceremonyId]: currentPhotos }));
+      setSaveSuccessMsg(`Photo(s) uploaded to ${theme.tagEn}! Click "Save All Changes to Cloud" to sync.`);
+      setTimeout(() => setSaveSuccessMsg(''), 4000);
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading ceremony image');
+    } finally {
+      setUploadingCeremonyTarget(null);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleDeleteCeremonyImage = (ceremonyId: string, photoId: string) => {
+    const updated = deleteCeremonyPhoto(ceremonyId, photoId);
+    setCeremonyPhotosMap(prev => ({ ...prev, [ceremonyId]: updated }));
+    setSaveSuccessMsg('Photo removed from ceremony! Click "Save All Changes to Cloud" to sync.');
+    setTimeout(() => setSaveSuccessMsg(''), 3500);
+  };
+
+  const handleResetCeremonyImages = (ceremonyId: string) => {
+    const theme = CEREMONY_THEMES[ceremonyId];
+    if (confirm(`Reset all photos for ${theme?.tagEn || ceremonyId} back to default original presets?`)) {
+      const resetList = resetCeremonyPhotos(ceremonyId);
+      setCeremonyPhotosMap(prev => ({ ...prev, [ceremonyId]: resetList }));
+      setSaveSuccessMsg(`Photos for ${theme?.tagEn || ceremonyId} reset to original defaults.`);
+      setTimeout(() => setSaveSuccessMsg(''), 3500);
+    }
+  };
+
   // Save changes to Cloud
   const handleSaveAll = async () => {
     setIsSaving(true);
     setSaveSuccessMsg('');
     try {
+      const allCeremonyPhotos = getAllCeremonyPhotosDictionary();
+      const updatedData = { ...formData, ceremonyPhotos: allCeremonyPhotos };
       // 1. Immediately inform parent and local storage with form state
-      onSave(formData);
+      onSave(updatedData);
       // 2. Persist to Firestore Cloud
-      await saveWeddingDataToCloud(formData);
-      setSaveSuccessMsg('All changes synced to Cloud! All guests will now see this update.');
+      await saveWeddingDataToCloud(updatedData);
+      setSaveSuccessMsg('All changes & ceremony photos synced to Cloud! All guests will now see this update.');
       setTimeout(() => setSaveSuccessMsg(''), 4000);
     } catch (err) {
       console.error(err);
-      onSave(formData);
+      onSave({ ...formData, ceremonyPhotos: getAllCeremonyPhotosDictionary() });
       setSaveSuccessMsg('Saved locally in browser.');
       setTimeout(() => setSaveSuccessMsg(''), 4000);
     } finally {
@@ -649,6 +751,18 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
             </button>
 
             <button
+              onClick={() => setActiveTab('ceremony-photos')}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeTab === 'ceremony-photos'
+                  ? 'bg-[#d4af37] text-[#0f172a] shadow-md font-bold'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5 text-amber-300" />
+              3. 🌸 Ceremony Photos (ہلدی، مہندی، بارات، نکاح، رخصتی تصاویر)
+            </button>
+
+            <button
               onClick={() => setActiveTab('family')}
               className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 activeTab === 'family'
@@ -657,7 +771,7 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               }`}
             >
               <Users className="w-3.5 h-3.5" />
-              3. Family Members (اہلِ خانہ)
+              4. Family Members (اہلِ خانہ)
             </button>
 
             <button
@@ -669,7 +783,7 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
-              4. Date, Countdown & Wedding Card (شادی کا کارڈ)
+              5. Date, Countdown & Wedding Card (شادی کا کارڈ)
             </button>
 
             <button
@@ -681,7 +795,7 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               }`}
             >
               <MapPin className="w-3.5 h-3.5" />
-              5. Venue & Maps
+              6. Venue & Maps
             </button>
 
             <button
@@ -693,7 +807,7 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               }`}
             >
               <HeartHandshake className="w-3.5 h-3.5" />
-              6. Guest RSVPs ({totalRsvpCount})
+              7. Guest RSVPs ({totalRsvpCount})
             </button>
 
             <button
@@ -705,7 +819,7 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
               }`}
             >
               <KeyRound className="w-3.5 h-3.5" />
-              7. Owner PIN
+              8. Owner PIN
             </button>
           </div>
         </div>
@@ -1452,7 +1566,295 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
           )}
 
           {/* ======================================================== */}
-          {/* TAB 3: FAMILY MEMBERS (AHL-E-KHANA) */}
+          {/* TAB: CEREMONY PHOTOS (ADD & DELETE FOR ALL CEREMONIES)   */}
+          {/* ======================================================== */}
+          {activeTab === 'ceremony-photos' && (
+            <div className="space-y-6">
+              {/* Header Box */}
+              <div className="bg-gradient-to-r from-amber-500/10 via-[#d4af37]/15 to-rose-500/10 border border-[#d4af37]/30 rounded-2xl p-4 sm:p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-[#ffeaa7] flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5 text-[#d4af37]" />
+                      تقاریب کی تصاویر کا مکمل انتظام (Ceremony Photos Management)
+                    </h3>
+                    <p className="text-xs text-gray-300 mt-1">
+                      تمام 5 تقاریب (ہلدی، مہندی، بارات، نکاح، رخصتی) کی تصاویر شامل کریں (Add) یا ڈیلیٹ (Delete) کریں۔
+                    </p>
+                  </div>
+                  <div className="text-[11px] bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-amber-200 shrink-0 self-start sm:self-center">
+                    📸 کل تصاویر: {ALL_CEREMONY_IDS.reduce((sum, id) => sum + (ceremonyPhotosMap[id]?.length || 0), 0)}
+                  </div>
+                </div>
+
+                {/* Ceremony Filter Selector Pills */}
+                <div className="flex items-center gap-1.5 mt-4 overflow-x-auto no-scrollbar pb-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCeremonyFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                      selectedCeremonyFilter === 'all'
+                        ? 'bg-[#d4af37] text-[#0f172a] font-bold shadow-md'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                    }`}
+                  >
+                    سب تقاریب (All)
+                  </button>
+                  {ALL_CEREMONY_IDS.map((cId) => {
+                    const theme = CEREMONY_THEMES[cId];
+                    const count = ceremonyPhotosMap[cId]?.length || 0;
+                    return (
+                      <button
+                        key={cId}
+                        type="button"
+                        onClick={() => setSelectedCeremonyFilter(cId)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
+                          selectedCeremonyFilter === cId
+                            ? 'bg-[#d4af37] text-[#0f172a] font-bold shadow-md'
+                            : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                        }`}
+                      >
+                        <span>{theme.iconEmoji}</span>
+                        <span>{theme.tagEn}</span>
+                        <span className="text-[10px] opacity-75">({count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Add New Photo Card */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5">
+                <h4 className="text-sm font-bold text-[#ffeaa7] mb-3 flex items-center gap-2">
+                  <Upload className="w-4 h-4 text-[#d4af37]" />
+                  نئی تصویر شامل کریں (Add New Photo to Ceremony)
+                </h4>
+
+                {/* Direct File Upload or URL Form */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Option A: Quick Upload from Phone/Computer */}
+                  <div className="bg-[#090f19] border border-white/10 rounded-xl p-3.5 flex flex-col justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-amber-300 block mb-1">
+                        طریقہ 1: فون یا کمپیوٹر کی گیلری سے اپلوڈ (Device Upload)
+                      </span>
+                      <p className="text-[11px] text-gray-400 mb-3">
+                        تصویر خودکار طریقے سے آپٹمائز ہو کر براہِ راست تقریب کی گیلری میں محفوظ ہو جائے گی۔
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <select
+                        value={targetAddCeremony}
+                        onChange={(e) => setTargetAddCeremony(e.target.value as CeremonyKey)}
+                        className="px-3 py-2 bg-[#131d2e] border border-white/20 rounded-xl text-xs text-[#ffeaa7] font-semibold outline-none cursor-pointer"
+                      >
+                        {ALL_CEREMONY_IDS.map((cId) => (
+                          <option key={cId} value={cId}>
+                            {CEREMONY_THEMES[cId].iconEmoji} {CEREMONY_THEMES[cId].tagEn} ({CEREMONY_THEMES[cId].tagUr})
+                          </option>
+                        ))}
+                      </select>
+
+                      <label className="flex-1 py-2 px-3 bg-gradient-to-r from-[#d4af37] to-[#b89125] hover:from-[#e5c158] hover:to-[#cfa735] text-[#0f172a] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{uploadingCeremonyTarget === targetAddCeremony ? 'Uploading...' : 'Choose Photos from Device'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          disabled={uploadingCeremonyTarget !== null}
+                          onChange={(e) => handleCeremonyFileSelect(e, targetAddCeremony)}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Option B: Add by Web Image URL */}
+                  <form onSubmit={handleAddCeremonyPhotoUrl} className="bg-[#090f19] border border-white/10 rounded-xl p-3.5 space-y-2.5">
+                    <div>
+                      <span className="text-xs font-bold text-amber-300 block mb-1">
+                        طریقہ 2: امیج لنک سے شامل کریں (Add by Image URL)
+                      </span>
+                      <input
+                        type="url"
+                        value={ceremonyPhotoUrlInput}
+                        onChange={(e) => setCeremonyPhotoUrlInput(e.target.value)}
+                        placeholder="https://example.com/photo.jpg"
+                        required
+                        className="w-full px-3 py-1.5 bg-[#131d2e] border border-white/20 rounded-xl text-xs text-white placeholder:text-gray-500 outline-none focus:border-[#d4af37]"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={ceremonyPhotoCaptionEn}
+                        onChange={(e) => setCeremonyPhotoCaptionEn(e.target.value)}
+                        placeholder="English Caption (Optional)"
+                        className="w-full px-3 py-1.5 bg-[#131d2e] border border-white/20 rounded-xl text-xs text-white placeholder:text-gray-500 outline-none focus:border-[#d4af37]"
+                      />
+                      <input
+                        type="text"
+                        value={ceremonyPhotoCaptionUr}
+                        onChange={(e) => setCeremonyPhotoCaptionUr(e.target.value)}
+                        placeholder="اردو کیپشن (اختیاری)"
+                        className="w-full px-3 py-1.5 bg-[#131d2e] border border-white/20 rounded-xl text-xs text-white placeholder:text-gray-500 outline-none focus:border-[#d4af37]"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <select
+                        value={targetAddCeremony}
+                        onChange={(e) => setTargetAddCeremony(e.target.value as CeremonyKey)}
+                        className="px-2.5 py-1.5 bg-[#131d2e] border border-white/20 rounded-xl text-xs text-[#ffeaa7] font-semibold outline-none cursor-pointer"
+                      >
+                        {ALL_CEREMONY_IDS.map((cId) => (
+                          <option key={cId} value={cId}>
+                            {CEREMONY_THEMES[cId].iconEmoji} {CEREMONY_THEMES[cId].tagEn}
+                          </option>
+                        ))}
+                      </select>
+
+                      <button
+                        type="submit"
+                        disabled={!ceremonyPhotoUrlInput.trim()}
+                        className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl flex items-center gap-1 cursor-pointer transition-all shadow-md active:scale-95"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Photo</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              {/* Ceremony Photos Sections (Filtered or All) */}
+              {ALL_CEREMONY_IDS.filter(id => selectedCeremonyFilter === 'all' || selectedCeremonyFilter === id).map((cId) => {
+                const theme = CEREMONY_THEMES[cId];
+                const photos = ceremonyPhotosMap[cId] || [];
+
+                return (
+                  <div key={cId} className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
+                    {/* Ceremony Card Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/10">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{theme.iconEmoji}</span>
+                        <div>
+                          <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
+                            <span>{theme.tagEn}</span>
+                            <span className="text-gray-400 font-normal">({theme.tagUr})</span>
+                            <span className="text-xs text-amber-300 font-normal bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
+                              {photos.length} Photos
+                            </span>
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {/* Device Upload for this ceremony */}
+                        <label className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-gray-200 flex items-center gap-1.5 cursor-pointer transition-all">
+                          <Upload className="w-3 h-3 text-amber-300" />
+                          <span>{uploadingCeremonyTarget === cId ? 'Uploading...' : 'Upload'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            disabled={uploadingCeremonyTarget !== null}
+                            onChange={(e) => handleCeremonyFileSelect(e, cId)}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {/* Reset to defaults button */}
+                        <button
+                          type="button"
+                          onClick={() => handleResetCeremonyImages(cId)}
+                          className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-xs font-medium flex items-center gap-1 transition-all cursor-pointer"
+                          title="Reset photos back to default original presets"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span className="hidden sm:inline">Reset Defaults</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Photos Grid */}
+                    {photos.length === 0 ? (
+                      <div className="py-8 text-center text-gray-400 text-xs">
+                        کوئی تصویر موجود نہیں ہے (No photos in this ceremony). Click Upload or Add by URL above to add photos.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {photos.map((photo, index) => (
+                          <div
+                            key={photo.id || index}
+                            className="group relative bg-[#090f19] border border-white/10 hover:border-[#d4af37]/60 rounded-xl overflow-hidden transition-all shadow-md"
+                          >
+                            {/* Image Thumbnail */}
+                            <div className="relative aspect-4/3 w-full overflow-hidden bg-black/40">
+                              <img
+                                src={photo.url}
+                                alt={photo.captionEn || `Photo ${index + 1}`}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy"
+                              />
+
+                              {/* Top Badge: Index & Type */}
+                              <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1">
+                                <span className="text-[10px] font-bold bg-black/70 backdrop-blur-xs text-white px-1.5 py-0.5 rounded-md">
+                                  #{index + 1}
+                                </span>
+                                {photo.isCustom && (
+                                  <span className="text-[9px] font-bold bg-[#d4af37]/90 text-black px-1.5 py-0.5 rounded-md">
+                                    Added
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* DELETE BUTTON: Prominent red button */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCeremonyImage(cId, photo.id)}
+                                title="Delete this image from ceremony"
+                                aria-label="Delete image"
+                                className="absolute top-1.5 right-1.5 z-20 w-7 h-7 rounded-full bg-red-600/90 hover:bg-red-600 text-white shadow-lg flex items-center justify-center transition-all cursor-pointer transform hover:scale-110 active:scale-95 border border-white/40"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                              </button>
+                            </div>
+
+                            {/* Caption Footer */}
+                            <div className="p-2 bg-[#090f19]">
+                              <p className="text-[11px] font-medium text-gray-200 truncate" title={photo.captionEn}>
+                                {photo.captionEn || `${theme.tagEn} Photo`}
+                              </p>
+                              {photo.captionUr && (
+                                <p className="text-[10px] text-gray-400 truncate" title={photo.captionUr}>
+                                  {photo.captionUr}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Bottom Reminder for Ceremony Photos */}
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-xs text-amber-200">
+                <span>
+                  💡 تصاویر شامل یا ڈیلیٹ کرنے کے بعد نیچے دیے گئے <strong>"Save All Changes to Cloud"</strong> بٹن کو کلک کریں تاکہ تمام مہمانوں کے فون پر لائیو اپڈیٹ ہو جائے۔
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* TAB 4: FAMILY MEMBERS (AHL-E-KHANA) */}
           {/* ======================================================== */}
           {activeTab === 'family' && (
             <div className="space-y-6">
@@ -3136,7 +3538,7 @@ export const OwnerAdminPanel: React.FC<OwnerAdminPanelProps> = ({
                   <p>💡 <strong>طریقہ کار (How it works):</strong></p>
                   <p>1. ویب سائٹ پر کوئی بھی لاگ ان یا ایڈمن بٹن مہمانوں کو نظر نہیں آتا۔</p>
                   <p>2. صرف جب آپ یو آر ایل میں <code>/admin</code> یا <code>?admin=true</code> لکھیں گے تب ہی یہ خفیہ پینل کھلے گا۔</p>
-                  <p>3. پن درج کریں (ڈیفالٹ: <code>{currentAdminPin}</code>) اور تبدیلیاں کر کے <strong>"Save All Changes to Cloud"</strong> دبائیں۔ تمام تبدیلیاں فوراً لائیو ہو جائیں گی۔</p>
+                  <p>3. اپنا خفیہ پن درج کریں (محفوظ و پوشیدہ: <code>••••</code>) اور تبدیلیاں کر کے <strong>"Save All Changes to Cloud"</strong> دبائیں۔ تمام تبدیلیاں فوراً لائیو ہو جائیں گی۔</p>
                 </div>
               </div>
             </div>

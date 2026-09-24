@@ -5,6 +5,7 @@ import { Language } from '../types';
 interface SkyLanternsAnimationProps {
   className?: string;
   language?: Language;
+  active?: boolean;
 }
 
 interface Lantern {
@@ -75,7 +76,8 @@ interface FloatingHeart {
 
 export const SkyLanternsAnimation: React.FC<SkyLanternsAnimationProps> = ({
   className = '',
-  language = 'en'
+  language = 'en',
+  active = true
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -86,27 +88,14 @@ export const SkyLanternsAnimation: React.FC<SkyLanternsAnimationProps> = ({
   const [releasedCount, setReleasedCount] = useState(0);
   const [floatingHearts, setFloatingHearts] = useState<FloatingHeart[]>([]);
 
-  // Hanging royal lighting lamps suspended at various levels across the entire background (left, right, and top)
+  // Hanging royal lighting lamps suspended along background (optimized to 6 lamps for low thermal impact)
   const hangingLampsRef = useRef<HangingLamp[]>([
-    // Left side cascading lamps (top, mid, lower-mid)
-    { xPercent: 0.05, hangLengthPercent: 0.16, size: 26, colorTone: 'gold', swaySpeed: 0.8, swayOffset: 0.2, flickerOffset: 0.5 },
-    { xPercent: 0.12, hangLengthPercent: 0.28, size: 32, colorTone: 'amber', swaySpeed: 0.7, swayOffset: 1.4, flickerOffset: 1.8 },
-    { xPercent: 0.04, hangLengthPercent: 0.44, size: 28, colorTone: 'rose', swaySpeed: 0.65, swayOffset: 2.1, flickerOffset: 2.4 },
-    { xPercent: 0.14, hangLengthPercent: 0.62, size: 34, colorTone: 'gold', swaySpeed: 0.6, swayOffset: 3.2, flickerOffset: 0.9 },
-    { xPercent: 0.06, hangLengthPercent: 0.78, size: 28, colorTone: 'amber', swaySpeed: 0.55, swayOffset: 4.0, flickerOffset: 3.1 },
-
-    // Right side cascading lamps (top, mid, lower-mid)
-    { xPercent: 0.95, hangLengthPercent: 0.18, size: 28, colorTone: 'rose', swaySpeed: 0.75, swayOffset: 0.8, flickerOffset: 1.2 },
-    { xPercent: 0.88, hangLengthPercent: 0.30, size: 32, colorTone: 'gold', swaySpeed: 0.7, swayOffset: 2.6, flickerOffset: 2.7 },
-    { xPercent: 0.96, hangLengthPercent: 0.46, size: 30, colorTone: 'amber', swaySpeed: 0.65, swayOffset: 1.1, flickerOffset: 0.4 },
-    { xPercent: 0.86, hangLengthPercent: 0.64, size: 34, colorTone: 'rose', swaySpeed: 0.58, swayOffset: 3.7, flickerOffset: 2.1 },
-    { xPercent: 0.94, hangLengthPercent: 0.80, size: 26, colorTone: 'gold', swaySpeed: 0.52, swayOffset: 4.8, flickerOffset: 1.6 },
-
-    // Top & upper central canopy lamps
-    { xPercent: 0.24, hangLengthPercent: 0.12, size: 24, colorTone: 'gold', swaySpeed: 0.9, swayOffset: 0.5, flickerOffset: 0.7 },
-    { xPercent: 0.38, hangLengthPercent: 0.08, size: 22, colorTone: 'rose', swaySpeed: 0.95, swayOffset: 1.9, flickerOffset: 2.2 },
-    { xPercent: 0.62, hangLengthPercent: 0.08, size: 22, colorTone: 'amber', swaySpeed: 0.95, swayOffset: 2.8, flickerOffset: 1.5 },
-    { xPercent: 0.76, hangLengthPercent: 0.12, size: 24, colorTone: 'gold', swaySpeed: 0.9, swayOffset: 3.5, flickerOffset: 3.0 }
+    { xPercent: 0.05, hangLengthPercent: 0.18, size: 26, colorTone: 'gold', swaySpeed: 0.8, swayOffset: 0.2, flickerOffset: 0.5 },
+    { xPercent: 0.12, hangLengthPercent: 0.55, size: 30, colorTone: 'amber', swaySpeed: 0.65, swayOffset: 1.4, flickerOffset: 1.8 },
+    { xPercent: 0.95, hangLengthPercent: 0.20, size: 26, colorTone: 'rose', swaySpeed: 0.75, swayOffset: 0.8, flickerOffset: 1.2 },
+    { xPercent: 0.88, hangLengthPercent: 0.56, size: 30, colorTone: 'gold', swaySpeed: 0.65, swayOffset: 2.6, flickerOffset: 2.7 },
+    { xPercent: 0.32, hangLengthPercent: 0.09, size: 22, colorTone: 'rose', swaySpeed: 0.9, swayOffset: 1.9, flickerOffset: 2.2 },
+    { xPercent: 0.68, hangLengthPercent: 0.09, size: 22, colorTone: 'amber', swaySpeed: 0.9, swayOffset: 2.8, flickerOffset: 1.5 }
   ]);
 
   // Helper to create a single glowing pastel lantern
@@ -231,6 +220,11 @@ export const SkyLanternsAnimation: React.FC<SkyLanternsAnimationProps> = ({
   }, [createLantern]);
 
   useEffect(() => {
+    if (!active) {
+      cancelAnimationFrame(animFrameIdRef.current);
+      return;
+    }
+
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
@@ -252,46 +246,45 @@ export const SkyLanternsAnimation: React.FC<SkyLanternsAnimationProps> = ({
     });
     resizeObserver.observe(container);
 
-    // Dense population of lanterns covering the ENTIRE background from top to bottom
-    const targetCount = width < 768 ? 95 : 155;
+    // Optimized population of lanterns: silky smooth, highly atmospheric, and cool on phone hardware
+    const targetCount = width < 768 ? 16 : 28;
     lanternsRef.current = [];
     for (let i = 0; i < targetCount; i++) {
-      // Distribute uniformly throughout the ENTIRE height: top, middle, and bottom
       const initialY = (i / targetCount) * (height + 60) + (Math.random() - 0.5) * 40;
       lanternsRef.current.push(createLantern(width, height, false, undefined, undefined, initialY));
     }
 
-    // Embers / Fairy Sparkles spread throughout the entire height
-    const emberCount = width < 768 ? 45 : 85;
+    // Embers / Fairy Sparkles spread throughout height
+    const emberCount = width < 768 ? 10 : 20;
     embersRef.current = [];
     for (let i = 0; i < emberCount; i++) {
       embersRef.current.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: 1 + Math.random() * 2.4,
-        speedY: 0.35 + Math.random() * 0.7,
-        speedX: (Math.random() - 0.5) * 0.4,
-        alpha: 0.35 + Math.random() * 0.5,
-        maxAlpha: 0.8,
-        decay: 0.002 + Math.random() * 0.005,
+        size: 1 + Math.random() * 2,
+        speedY: 0.3 + Math.random() * 0.5,
+        speedX: (Math.random() - 0.5) * 0.3,
+        alpha: 0.35 + Math.random() * 0.4,
+        maxAlpha: 0.75,
+        decay: 0.002 + Math.random() * 0.004,
         color: Math.random() > 0.5 ? '#f59e0b' : '#fb7185'
       });
     }
 
-    // Floating blush rose petals across the entire section
+    // Floating blush rose petals across hero section
     const petalColors = ['#f472b6', '#fb7185', '#fda4af', '#fecdd3', '#ffffff'];
-    petalsRef.current = Array.from({ length: 32 }, () => ({
+    petalsRef.current = Array.from({ length: width < 768 ? 8 : 14 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      size: 5 + Math.random() * 7,
-      speedY: 0.6 + Math.random() * 0.8,
-      speedX: 0.2 + Math.random() * 0.5,
+      size: 5 + Math.random() * 6,
+      speedY: 0.5 + Math.random() * 0.6,
+      speedX: 0.15 + Math.random() * 0.4,
       rotation: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.03,
-      swaySpeed: 1 + Math.random() * 1.8,
+      rotSpeed: (Math.random() - 0.5) * 0.02,
+      swaySpeed: 0.8 + Math.random() * 1.4,
       swayOffset: Math.random() * Math.PI * 2,
       color: petalColors[Math.floor(Math.random() * petalColors.length)],
-      opacity: 0.55 + Math.random() * 0.35
+      opacity: 0.5 + Math.random() * 0.3
     }));
 
     // Draw single realistic glowing sky lantern (Floating Lighting Lamp)
@@ -524,19 +517,17 @@ export const SkyLanternsAnimation: React.FC<SkyLanternsAnimationProps> = ({
             const bulbFlicker = 0.85 + Math.sin(time * 3 + s * 3 + b + tIdx) * 0.15;
             const isGold = (s + b + tIdx) % 2 === 0;
 
-            const bulbAura = ctx.createRadialGradient(bx, by, 1, bx, by, 14);
-            bulbAura.addColorStop(0, isGold ? `rgba(254, 240, 138, ${0.85 * bulbFlicker})` : `rgba(254, 205, 211, ${0.85 * bulbFlicker})`);
-            bulbAura.addColorStop(0.5, isGold ? `rgba(245, 158, 11, ${0.35 * bulbFlicker})` : `rgba(244, 63, 94, ${0.35 * bulbFlicker})`);
-            bulbAura.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-            ctx.fillStyle = bulbAura;
+            // Ultra-lightweight glowing fairy bulb (avoid expensive per-frame radial gradient allocations)
+            ctx.fillStyle = isGold
+              ? `rgba(251, 191, 36, ${0.45 * bulbFlicker})`
+              : `rgba(244, 114, 182, ${0.45 * bulbFlicker})`;
             ctx.beginPath();
-            ctx.arc(bx, by, 14, 0, Math.PI * 2);
+            ctx.arc(bx, by, 7, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
+            ctx.arc(bx, by, 2.2, 0, Math.PI * 2);
             ctx.fill();
           }
         }
@@ -545,11 +536,22 @@ export const SkyLanternsAnimation: React.FC<SkyLanternsAnimationProps> = ({
     };
 
     let startTime = performance.now();
+    let lastFrameTime = performance.now();
+    const targetFpsInterval = 1000 / 35; // 35 FPS cap - eliminates thermal throttling and excessive battery draw
+    let isVisible = false;
 
     // Main animation loop
-    const animate = () => {
-      const now = performance.now();
-      const time = (now - startTime) * 0.001;
+    const animate = (timestamp: number) => {
+      if (!isVisible || !active) return;
+
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed < targetFpsInterval) {
+        animFrameIdRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTime = timestamp - (elapsed % targetFpsInterval);
+
+      const time = (timestamp - startTime) * 0.001;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -564,18 +566,17 @@ export const SkyLanternsAnimation: React.FC<SkyLanternsAnimationProps> = ({
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Warm radial sunburst glows (one upper, one mid-lower) so entire background glows with lighting
+      // Warm radial sunburst glows (one upper, one mid-lower)
       const sunburstTop = ctx.createRadialGradient(width * 0.5, height * 0.25, 20, width * 0.5, height * 0.25, width * 0.7);
-      sunburstTop.addColorStop(0, 'rgba(254, 240, 138, 0.35)');
-      sunburstTop.addColorStop(0.4, 'rgba(254, 215, 170, 0.2)');
-      sunburstTop.addColorStop(0.8, 'rgba(252, 231, 243, 0.12)');
+      sunburstTop.addColorStop(0, 'rgba(254, 240, 138, 0.3)');
+      sunburstTop.addColorStop(0.4, 'rgba(254, 215, 170, 0.15)');
       sunburstTop.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx.fillStyle = sunburstTop;
       ctx.fillRect(0, 0, width, height);
 
       const sunburstBottom = ctx.createRadialGradient(width * 0.5, height * 0.75, 20, width * 0.5, height * 0.75, width * 0.7);
-      sunburstBottom.addColorStop(0, 'rgba(254, 215, 170, 0.25)');
-      sunburstBottom.addColorStop(0.5, 'rgba(254, 240, 138, 0.15)');
+      sunburstBottom.addColorStop(0, 'rgba(254, 215, 170, 0.2)');
+      sunburstBottom.addColorStop(0.5, 'rgba(254, 240, 138, 0.1)');
       sunburstBottom.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx.fillStyle = sunburstBottom;
       ctx.fillRect(0, 0, width, height);
@@ -655,16 +656,51 @@ export const SkyLanternsAnimation: React.FC<SkyLanternsAnimationProps> = ({
       // 6. Draw multi-tier fairy string lights along upper canopy
       drawFairyStringLights(time);
 
-      animFrameIdRef.current = requestAnimationFrame(animate);
+      if (isVisible && active) {
+        animFrameIdRef.current = requestAnimationFrame(animate);
+      }
     };
 
-    animate();
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animFrameIdRef.current);
+      } else if (isVisible && active) {
+        lastFrameTime = performance.now();
+        cancelAnimationFrame(animFrameIdRef.current);
+        animFrameIdRef.current = requestAnimationFrame(animate);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && active && !wasVisible) {
+          startTime = performance.now();
+          lastFrameTime = performance.now();
+          cancelAnimationFrame(animFrameIdRef.current);
+          animFrameIdRef.current = requestAnimationFrame(animate);
+        } else if (!isVisible) {
+          cancelAnimationFrame(animFrameIdRef.current);
+        }
+      },
+      { threshold: 0.05 }
+    );
+
+    if (canvas.parentElement) {
+      intersectionObserver.observe(canvas.parentElement);
+    } else {
+      intersectionObserver.observe(canvas);
+    }
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      intersectionObserver.disconnect();
       resizeObserver.disconnect();
       cancelAnimationFrame(animFrameIdRef.current);
     };
-  }, [createLantern]);
+  }, [active, createLantern]);
 
   // Handle pointer down on hero to release a lantern & cute heart
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {

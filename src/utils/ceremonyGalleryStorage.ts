@@ -1,13 +1,5 @@
-// Storage utility for ceremony-specific photo galleries with localStorage persistence
-export interface CeremonyPhoto {
-  id: string;
-  url: string;
-  captionEn: string;
-  captionUr: string;
-  captionHi?: string;
-  isCustom?: boolean;
-  dateAdded?: string;
-}
+import { CeremonyPhoto } from '../types';
+export type { CeremonyPhoto };
 
 export interface CeremonyThemeConfig {
   accentColor: string;
@@ -244,66 +236,109 @@ export const DEFAULT_CEREMONY_PHOTOS: Record<string, CeremonyPhoto[]> = {
   ]
 };
 
-const STORAGE_PREFIX = 'ceremony_gallery_photos_v1_';
+const ACTIVE_STORAGE_PREFIX = 'ceremony_active_photos_v2_';
+const LEGACY_STORAGE_PREFIX = 'ceremony_gallery_photos_v1_';
+
+export const ALL_CEREMONY_IDS = ['haldi', 'mehndi', 'baraat', 'nikah', 'rukhsati'] as const;
+export type CeremonyKey = typeof ALL_CEREMONY_IDS[number];
 
 /**
- * Load all photos for a given ceremony (combines stored custom photos + defaults)
+ * Load all photos for a given ceremony.
+ * Priority:
+ * 1. Active v2 localStorage list (which supports user deletions of any photo)
+ * 2. Cloud-synced list (if passed or present in WeddingData)
+ * 3. Legacy v1 localStorage list merged with defaults
+ * 4. Hardcoded defaults
  */
-export function getCeremonyPhotos(ceremonyId: string): CeremonyPhoto[] {
+export function getCeremonyPhotos(ceremonyId: string, cloudList?: CeremonyPhoto[]): CeremonyPhoto[] {
   const defaults = DEFAULT_CEREMONY_PHOTOS[ceremonyId] || [];
   try {
-    const raw = localStorage.getItem(STORAGE_PREFIX + ceremonyId);
-    if (!raw) return defaults;
-    const customPhotos: CeremonyPhoto[] = JSON.parse(raw);
-    if (!Array.isArray(customPhotos)) return defaults;
-    // Put custom uploaded photos first, then default photos
-    return [...customPhotos, ...defaults];
+    const rawV2 = localStorage.getItem(ACTIVE_STORAGE_PREFIX + ceremonyId);
+    if (rawV2 !== null) {
+      const parsed = JSON.parse(rawV2);
+      if (Array.isArray(parsed)) return parsed;
+    }
+
+    // Check if cloud has a synced list
+    if (cloudList && Array.isArray(cloudList) && cloudList.length > 0) {
+      localStorage.setItem(ACTIVE_STORAGE_PREFIX + ceremonyId, JSON.stringify(cloudList));
+      return cloudList;
+    }
+
+    // Check legacy v1 storage
+    const rawV1 = localStorage.getItem(LEGACY_STORAGE_PREFIX + ceremonyId);
+    if (rawV1) {
+      const customPhotos: CeremonyPhoto[] = JSON.parse(rawV1);
+      if (Array.isArray(customPhotos) && customPhotos.length > 0) {
+        const merged = [...customPhotos, ...defaults];
+        localStorage.setItem(ACTIVE_STORAGE_PREFIX + ceremonyId, JSON.stringify(merged));
+        return merged;
+      }
+    }
+
+    return defaults;
   } catch (err) {
-    console.warn('Error reading ceremony photos from localStorage:', err);
+    console.warn('Error reading ceremony photos:', err);
     return defaults;
   }
 }
 
 /**
- * Save an uploaded or custom photo for a ceremony
+ * Directly save the full active photo list for a ceremony
  */
-export function addCeremonyPhoto(ceremonyId: string, photo: CeremonyPhoto): CeremonyPhoto[] {
+export function saveCeremonyPhotos(ceremonyId: string, photos: CeremonyPhoto[]): void {
   try {
-    const raw = localStorage.getItem(STORAGE_PREFIX + ceremonyId);
-    let customPhotos: CeremonyPhoto[] = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(customPhotos)) customPhotos = [];
-    
-    // Add new photo at beginning
-    customPhotos = [photo, ...customPhotos];
-    localStorage.setItem(STORAGE_PREFIX + ceremonyId, JSON.stringify(customPhotos));
-    
-    const defaults = DEFAULT_CEREMONY_PHOTOS[ceremonyId] || [];
-    return [...customPhotos, ...defaults];
+    localStorage.setItem(ACTIVE_STORAGE_PREFIX + ceremonyId, JSON.stringify(photos));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('ceremonyPhotosUpdated', {
+          detail: { ceremonyId, photos, count: photos.length }
+        })
+      );
+    }
   } catch (err) {
-    console.warn('Failed to save ceremony photo:', err);
-    return getCeremonyPhotos(ceremonyId);
+    console.warn('Failed to save ceremony photos:', err);
   }
 }
 
 /**
- * Delete a custom photo by id
+ * Add a new photo to a ceremony (adds to top of list)
+ */
+export function addCeremonyPhoto(ceremonyId: string, photo: CeremonyPhoto): CeremonyPhoto[] {
+  const current = getCeremonyPhotos(ceremonyId);
+  const updated = [photo, ...current];
+  saveCeremonyPhotos(ceremonyId, updated);
+  return updated;
+}
+
+/**
+ * Delete ANY photo by ID (both preset and custom uploaded photos)
  */
 export function deleteCeremonyPhoto(ceremonyId: string, photoId: string): CeremonyPhoto[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_PREFIX + ceremonyId);
-    if (!raw) return getCeremonyPhotos(ceremonyId);
-    let customPhotos: CeremonyPhoto[] = JSON.parse(raw);
-    if (!Array.isArray(customPhotos)) return getCeremonyPhotos(ceremonyId);
+  const current = getCeremonyPhotos(ceremonyId);
+  const updated = current.filter((p) => p.id !== photoId);
+  saveCeremonyPhotos(ceremonyId, updated);
+  return updated;
+}
 
-    customPhotos = customPhotos.filter(p => p.id !== photoId);
-    localStorage.setItem(STORAGE_PREFIX + ceremonyId, JSON.stringify(customPhotos));
-    
-    const defaults = DEFAULT_CEREMONY_PHOTOS[ceremonyId] || [];
-    return [...customPhotos, ...defaults];
-  } catch (err) {
-    console.warn('Failed to delete ceremony photo:', err);
-    return getCeremonyPhotos(ceremonyId);
+/**
+ * Reset a ceremony back to the original default presets
+ */
+export function resetCeremonyPhotos(ceremonyId: string): CeremonyPhoto[] {
+  const defaults = DEFAULT_CEREMONY_PHOTOS[ceremonyId] || [];
+  saveCeremonyPhotos(ceremonyId, defaults);
+  return defaults;
+}
+
+/**
+ * Get all ceremony photos as a dictionary
+ */
+export function getAllCeremonyPhotosDictionary(): Record<string, CeremonyPhoto[]> {
+  const result: Record<string, CeremonyPhoto[]> = {};
+  for (const id of ALL_CEREMONY_IDS) {
+    result[id] = getCeremonyPhotos(id);
   }
+  return result;
 }
 
 /**

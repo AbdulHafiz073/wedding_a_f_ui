@@ -47,6 +47,16 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
   const [photosCount, setPhotosCount] = useState<number>(() => getCeremonyPhotos('haldi').length);
 
+  useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (e.detail?.ceremonyId === 'haldi' && typeof e.detail?.count === 'number') {
+        setPhotosCount(e.detail.count);
+      }
+    };
+    window.addEventListener('ceremonyPhotosUpdated', handleUpdate);
+    return () => window.removeEventListener('ceremonyPhotosUpdated', handleUpdate);
+  }, []);
+
   // Continuous background canvas simulation of Haldi powder clouds & swirling marigold petals
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -112,8 +122,9 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
       swayOffset: number;
     }
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const petalColors = ['#f1c40f', '#f39c12', '#ffa801', '#ffc048', '#ff9f1a', '#e67e22'];
-    const petals: MarigoldPetal[] = Array.from({ length: 50 }, () => ({
+    const petals: MarigoldPetal[] = Array.from({ length: isMobile ? 18 : 36 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       size: 8 + Math.random() * 12,
@@ -138,7 +149,7 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
     }
 
     const rainColors = ['#f59e0b', '#fbbf24', '#fde047', '#eab308', '#d97706'];
-    const rainDrops: HaldiRainDrop[] = Array.from({ length: 80 }, () => ({
+    const rainDrops: HaldiRainDrop[] = Array.from({ length: isMobile ? 25 : 50 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       length: 15 + Math.random() * 28,
@@ -149,7 +160,20 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
     }));
 
     let time = 0;
-    const render = () => {
+    let lastFrameTime = performance.now();
+    const targetFpsInterval = 1000 / 35; // 35 FPS cap
+    let isVisible = false;
+
+    const render = (timestamp: number) => {
+      if (!isVisible) return;
+
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed < targetFpsInterval) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = timestamp - (elapsed % targetFpsInterval);
+
       time += 0.015;
       ctx.clearRect(0, 0, width, height);
 
@@ -242,12 +266,46 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
         ctx.restore();
       });
 
-      animId = requestAnimationFrame(render);
+      if (isVisible) {
+        animId = requestAnimationFrame(render);
+      }
     };
 
-    render();
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animId);
+      } else if (isVisible) {
+        lastFrameTime = performance.now();
+        cancelAnimationFrame(animId);
+        animId = requestAnimationFrame(render);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          lastFrameTime = performance.now();
+          cancelAnimationFrame(animId);
+          animId = requestAnimationFrame(render);
+        } else if (!isVisible) {
+          cancelAnimationFrame(animId);
+        }
+      },
+      { threshold: 0.05, rootMargin: '60px' }
+    );
+
+    if (canvas.parentElement) {
+      observer.observe(canvas.parentElement);
+    } else {
+      observer.observe(canvas);
+    }
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      observer.disconnect();
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animId);
     };

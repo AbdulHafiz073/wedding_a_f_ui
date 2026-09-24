@@ -82,8 +82,9 @@ export const CelestialRainCanvas: React.FC = () => {
       'shimmer-orb',
     ];
 
-    // High density pure star rainfall (320 sparkling stars of 5 distinct types)
-    const starCount = 320;
+    // Luminous celestial star rainfall (optimized for zero phone overheating)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const starCount = isMobile ? 24 : 48;
     const stars: RainStar[] = Array.from({ length: starCount }, () => {
       const variant = variants[Math.floor(Math.random() * variants.length)];
       const colorPair = starColors[Math.floor(Math.random() * starColors.length)];
@@ -239,7 +240,16 @@ export const CelestialRainCanvas: React.FC = () => {
 
     let time = 0;
 
-    const animate = () => {
+    const animate = (timestamp: number) => {
+      if (!isVisible) return;
+
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed < targetFpsInterval) {
+        animId = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTime = timestamp - (elapsed % targetFpsInterval);
+
       time += 0.02;
       ctx.clearRect(0, 0, width, height);
 
@@ -362,12 +372,50 @@ export const CelestialRainCanvas: React.FC = () => {
         }
       }
 
-      animId = requestAnimationFrame(animate);
+      if (isVisible) {
+        animId = requestAnimationFrame(animate);
+      }
     };
 
-    animId = requestAnimationFrame(animate);
+    let isVisible = false;
+    let lastFrameTime = performance.now();
+    const targetFpsInterval = 1000 / 35; // 35 FPS cap
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animId);
+      } else if (isVisible) {
+        lastFrameTime = performance.now();
+        cancelAnimationFrame(animId);
+        animId = requestAnimationFrame(animate);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          lastFrameTime = performance.now();
+          cancelAnimationFrame(animId);
+          animId = requestAnimationFrame(animate);
+        } else if (!isVisible) {
+          cancelAnimationFrame(animId);
+        }
+      },
+      { threshold: 0.05, rootMargin: '60px' }
+    );
+
+    if (canvas.parentElement) {
+      intersectionObserver.observe(canvas.parentElement);
+    } else {
+      intersectionObserver.observe(canvas);
+    }
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      intersectionObserver.disconnect();
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
     };
