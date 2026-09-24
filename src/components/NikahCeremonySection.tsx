@@ -510,7 +510,7 @@ export const NikahCeremonySection: React.FC<NikahCeremonySectionProps> = ({
         onClose={() => setIsGalleryOpen(false)}
         ceremonyId="nikah"
         language={language}
-        onPhotosUpdated={(count) => setPhotosCount(count)}
+        onPhotosUpdated={setPhotosCount}
       />
     </section>
   );

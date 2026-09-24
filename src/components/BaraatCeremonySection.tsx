@@ -464,7 +464,7 @@ export const BaraatCeremonySection: React.FC<BaraatCeremonySectionProps> = ({
         onClose={() => setIsGalleryOpen(false)}
         ceremonyId="baraat"
         language={language}
-        onPhotosUpdated={(count) => setPhotosCount(count)}
+        onPhotosUpdated={setPhotosCount}
       />
     </section>
   );

@@ -41,7 +41,7 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
   language,
   onPhotosUpdated
 }) => {
-  const [photos, setPhotos] = useState<CeremonyPhoto[]>([]);
+  const [photos, setPhotos] = useState<CeremonyPhoto[]>(() => getCeremonyPhotos(ceremonyId));
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -51,26 +51,29 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const onPhotosUpdatedRef = useRef(onPhotosUpdated);
+  onPhotosUpdatedRef.current = onPhotosUpdated;
   const theme = CEREMONY_THEMES[ceremonyId] || CEREMONY_THEMES.haldi;
 
-  // Load photos when modal opens or ceremonyId changes, and listen for updates
+  // Sync photos when modal opens or ceremonyId changes
   useEffect(() => {
     if (isOpen) {
       const loaded = getCeremonyPhotos(ceremonyId);
       setPhotos(loaded);
-      if (onPhotosUpdated) onPhotosUpdated(loaded.length);
     }
+  }, [isOpen, ceremonyId]);
 
+  // Listen for real-time background updates
+  useEffect(() => {
     const handleUpdateEvent = (e: any) => {
       if (e.detail?.ceremonyId === ceremonyId && Array.isArray(e.detail?.photos)) {
         setPhotos(e.detail.photos);
-        if (onPhotosUpdated) onPhotosUpdated(e.detail.photos.length);
       }
     };
 
     window.addEventListener('ceremonyPhotosUpdated', handleUpdateEvent);
     return () => window.removeEventListener('ceremonyPhotosUpdated', handleUpdateEvent);
-  }, [isOpen, ceremonyId, onPhotosUpdated]);
+  }, [ceremonyId]);
 
   // Handle escape key to close modal or lightbox
   useEffect(() => {
@@ -134,7 +137,7 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
       }
 
       setPhotos(updatedPhotos);
-      if (onPhotosUpdated) onPhotosUpdated(updatedPhotos.length);
+      if (onPhotosUpdatedRef.current) onPhotosUpdatedRef.current(updatedPhotos.length);
       setStatusMessage({
         type: 'success',
         text: language === 'ur' ? 'تصویر کامیابی سے شامل ہو گئی!' : language === 'hi' ? 'तस्वीर सफलतापूर्वक जोड़ दी गई!' : 'Photos added successfully!'
@@ -162,14 +165,14 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
       url: urlInput.trim(),
       captionEn: captionInput.trim() || `${theme.tagEn} memory`,
       captionUr: captionInput.trim() || `${theme.tagUr} کی خوبصورت یاد`,
-      captionHi: captionInput.trim() || `${theme.tagHi} की सुंदर याद`,
+      captionHi: captionInput.trim() || `${theme.tagHi} کی सुंदर याद`,
       isCustom: true,
       dateAdded: new Date().toLocaleDateString()
     };
 
     const updated = addCeremonyPhoto(ceremonyId, newPhoto);
     setPhotos(updated);
-    if (onPhotosUpdated) onPhotosUpdated(updated.length);
+    if (onPhotosUpdatedRef.current) onPhotosUpdatedRef.current(updated.length);
 
     setUrlInput('');
     setCaptionInput('');
@@ -186,7 +189,7 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
     e.stopPropagation();
     const updated = deleteCeremonyPhoto(ceremonyId, photoId);
     setPhotos(updated);
-    if (onPhotosUpdated) onPhotosUpdated(updated.length);
+    if (onPhotosUpdatedRef.current) onPhotosUpdatedRef.current(updated.length);
     if (selectedPhotoIndex !== null && selectedPhotoIndex >= updated.length) {
       setSelectedPhotoIndex(null);
     }
@@ -196,7 +199,7 @@ export const CeremonyGalleryModal: React.FC<CeremonyGalleryModalProps> = ({
   const handleReset = () => {
     const updated = resetCeremonyPhotos(ceremonyId);
     setPhotos(updated);
-    if (onPhotosUpdated) onPhotosUpdated(updated.length);
+    if (onPhotosUpdatedRef.current) onPhotosUpdatedRef.current(updated.length);
     setStatusMessage({
       type: 'success',
       text: language === 'ur' ? 'اصلی تصاویر بحال کر دی گئیں' : language === 'hi' ? 'डिफ़ॉल्ट तस्वीरें बहाल कर दी गईं' : 'Default photos restored'

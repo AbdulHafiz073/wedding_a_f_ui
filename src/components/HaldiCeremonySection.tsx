@@ -491,7 +491,7 @@ export const HaldiCeremonySection: React.FC<HaldiCeremonySectionProps> = ({
         onClose={() => setIsGalleryOpen(false)}
         ceremonyId="haldi"
         language={language}
-        onPhotosUpdated={(count) => setPhotosCount(count)}
+        onPhotosUpdated={setPhotosCount}
       />
     </section>
   );

@@ -457,7 +457,7 @@ export const MehndiCeremonySection: React.FC<MehndiCeremonySectionProps> = ({
         onClose={() => setIsGalleryOpen(false)}
         ceremonyId="mehndi"
         language={language}
-        onPhotosUpdated={(count) => setPhotosCount(count)}
+        onPhotosUpdated={setPhotosCount}
       />
     </section>
   );

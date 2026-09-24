@@ -290,11 +290,13 @@ export function saveCeremonyPhotos(ceremonyId: string, photos: CeremonyPhoto[]):
   try {
     localStorage.setItem(ACTIVE_STORAGE_PREFIX + ceremonyId, JSON.stringify(photos));
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('ceremonyPhotosUpdated', {
-          detail: { ceremonyId, photos, count: photos.length }
-        })
-      );
+      setTimeout(() => {
+        window.dispatchEvent(
+          new CustomEvent('ceremonyPhotosUpdated', {
+            detail: { ceremonyId, photos, count: photos.length }
+          })
+        );
+      }, 0);
     }
   } catch (err) {
     console.warn('Failed to save ceremony photos:', err);
